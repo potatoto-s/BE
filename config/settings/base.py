@@ -21,8 +21,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent
 env = environ.Env(DEBUG=(bool, False))
 environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
 
-SECRET_KEY = os.environ.get("SECRET_KEY")
-
+# SECRET_KEY를 환경 변수에서 가져옵니다.
+SECRET_KEY = env("SECRET_KEY")
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
