@@ -19,7 +19,7 @@ import environ
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 env = environ.Env(DEBUG=(bool, False))
-environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
+environ.Env.read_env(env_file=os.path.join(BASE_DIR, ".env"))
 
 # SECRET_KEY를 환경 변수에서 가져옵니다.
 SECRET_KEY = env("SECRET_KEY")
