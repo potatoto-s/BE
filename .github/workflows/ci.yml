@@ -35,6 +35,11 @@ jobs:
         run: |
           poetry install
 
+      - name: Set environment variables
+        env:
+          SECRET_KEY: ${{ secrets.SECRET_KEY }}
+        run: echo "Environment variables set"
+
       - name: Run black
         run: |
           poetry run black . --check
