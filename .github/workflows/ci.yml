@@ -36,9 +36,7 @@ jobs:
           poetry install
 
       - name: Set environment variables
-        env:
-          SECRET_KEY: ${{ secrets.SECRET_KEY }}
-        run: echo "Environment variables set"
+        run: echo "SECRET_KEY=${{ secrets.SECRET_KEY }}" >> $GITHUB_ENV
 
       - name: Run black
         run: |
