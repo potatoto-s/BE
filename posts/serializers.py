@@ -19,11 +19,13 @@ class PostImageSerializer(BaseSerializer):
     # 게시글 이미지 시리얼라이저
 
     id = serializers.IntegerField(read_only=True)
-    image_url = serializers.CharField(max_length=255)
+    image_url = serializers.ImageField()
     created_at = serializers.DateTimeField(read_only=True)
 
     def create(self, validated_data: Dict[str, Any]) -> PostImage:
-        return PostImage.objects.create(**validated_data)
+        # 데이터 검증 또는 추가 처리
+        instance = super().create(validated_data)
+        return PostImage.objects.get(id=instance.id)
 
 
 class PostCreateSerializer(BaseSerializer):
@@ -111,18 +113,29 @@ class PostDetailSerializer(BaseSerializer):
 
     def get_is_liked(self, obj: Post) -> bool:
         # 현재 사용자의 게시글 좋아요 여부 확인
+        # 성능 최적화를 위한 prefetch_related
+        # view에서 다음과 같이 쿼리 최적화 필요:
+        # Post.objects.prefetch_related('likes').get(id=pk)
         user = self.context["request"].user
-        if user.is_authenticated:
-            return PostLike.objects.filter(post=obj, user=user).exists()
-        return False
+        if not user.is_authenticated:
+            return False
+
+        # likes가 prefetch되어 있다면 메모리에서 확인
+        if hasattr(obj, "likes"):
+            return any(like.user_id == user.id for like in obj.likes.all())
+
+        # 아니라면 DB쿼리
+        return PostLike.objects.filter(post=obj, user=user).exists()
 
 
 class PostUpdateSerializer(BaseSerializer):
     # 자신의 게시글만 수정 가능
-    # 수정할 필드는 선택적으로 입력 가능
+    # 삭제된 게시글은 수정 불가
+    # 이미지 추가/삭제는 service layer에서
     title = serializers.CharField(max_length=255, required=False)
     content = serializers.CharField(required=False)
     category = serializers.ChoiceField(choices=Post.Category.choices, required=False)
+    # 이미지 관련 필드는 유지하되, 실제 처리는 service layer에서
     add_images = serializers.ListField(
         child=serializers.ImageField(), required=False, write_only=True
     )
@@ -133,20 +146,21 @@ class PostUpdateSerializer(BaseSerializer):
     def validate(self, attrs: Dict[str, Any]) -> Dict[str, Any]:
         # 수정 권한 검증
         # self.instance가 None이 아닌지 확인
-        if (
-            self.instance is not None
-            and self.instance.user != self.context["request"].user
-        ):
-            raise ValidationError("자신의 게시글만 수정할 수 있습니다.")
+        if self.instance is not None:
+            # 삭제된 게시글 수정 방지
+            if self.instance.is_deleted:
+                raise ValidationError("삭제된 게시글은 수정할 수 없습니다.")
+
+            # 본인 게시글이 아닌 경우
+            if self.instance.user != self.context["request"].user:
+                raise ValidationError("자신의 게시글만 수정할 수 있습니다.")
+
         return attrs
 
     def update(self, instance: Post, validated_data: Dict[str, Any]) -> Post:
         # 게시글 수정
         # 입력된 필드만 선택적으로 수정
         # 삭제된 게시글 수정 방지
-
-        if instance.is_deleted:
-            raise ValidationError("삭제된 게시글은 수정할 수 없습니다.")
 
         instance.title = validated_data.get("title", instance.title)
         instance.content = validated_data.get("content", instance.content)
