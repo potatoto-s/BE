@@ -46,6 +46,9 @@ class Post(models.Model):
         default=Status.ACTIVE,
         help_text="게시글 상태",
     )
+    is_deleted = models.BooleanField(
+        default=False, help_text="삭제 여부 (True인 경우 삭제)"
+    )
     created_at = models.DateTimeField(auto_now_add=True, help_text="작성일시")
     updated_at = models.DateTimeField(auto_now=True, help_text="수정일시")
 
@@ -57,10 +60,23 @@ class Post(models.Model):
             models.Index(fields=["category"]),
             # 시간 순 정렬 최적화
             models.Index(fields=["created_at"]),
+            # 삭제되지 않은 게시글 조회 최적화
+            models.Index(fields=["is_deleted"]),
         ]
 
     def __str__(self) -> str:
         return self.title
+
+    def delete(
+        self, using: str | None = None, keep_parents: bool = False
+    ) -> tuple[int, dict[str, int]]:
+        # 소프트 딜리트 구현
+        self.is_deleted = True
+        self.save(using=using)
+
+        # 원래 delete 메서드의 반환 형식을 맞추기 위해
+        # (삭제된 객체 수, {모델명: 삭제된 객체수})의 형태로 반환
+        return (1, {f"{self._meta.model_name}": 1})
 
 
 class PostImage(models.Model):
@@ -68,7 +84,9 @@ class PostImage(models.Model):
     # 게시글 삭제 시 이미지 삭제
 
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="images")
-    image_url = models.CharField(max_length=255, help_text="이미지 파일 경로")
+    image_url = models.URLField(
+        max_length=2000, help_text="이미지 URL (유효한 URL 형식)"
+    )
     created_at = models.DateTimeField(auto_now_add=True, help_text="업로드 일시")
 
     class Meta:
