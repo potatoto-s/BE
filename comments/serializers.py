@@ -31,7 +31,9 @@ class CommentCreateSerializer(BaseSerializer):
 
         # 삭제된 게시글에는 댓글을 작성할 수 없음
         post = self.context.get("post")
-        if post and post.is_deleted:
+        if not post:
+            raise ValidationError("게시글 정보가 제공되지 않았습니다.")
+        if post.is_deleted:
             raise ValidationError("삭제된 게시글에는 댓글을 작성할 수 없습니다.")
 
         return attrs
@@ -89,18 +91,17 @@ class CommentUpdateSerializer(BaseSerializer):
     content = serializers.CharField()
 
     def validate(self, attrs: Dict[str, Any]) -> Dict[str, Any]:
-        if self.instance is not None:
-            # 본인 댓글이 아닌 경우
-            if self.instance.user != self.context["request"].user:
-                raise ValidationError("자신의 댓글만 수정할 수 있습니다.")
+        # 댓글 존재 여부 확인
+        if not self.instance:
+            raise ValidationError("수정할 댓글이 존재하지 않습니다.")
 
-            # 삭제된 댓글인 경우
-            if self.instance.is_deleted:
-                raise ValidationError("삭제된 댓글은 수정할 수 없습니다.")
-
-            # 삭제된 게시글의 댓글인 경우
-            if self.instance.post.is_deleted:
-                raise ValidationError("삭제된 게시글의 댓글은 수정할 수 없습니다.")
+        # 권한 및 상태 검증
+        if self.instance.user != self.context["request"].user:
+            raise ValidationError("자신의 댓글만 수정할 수 있습니다.")
+        if self.instance.is_deleted:
+            raise ValidationError("삭제된 댓글은 수정할 수 없습니다.")
+        if self.instance.post.is_deleted:
+            raise ValidationError("삭제된 게시글의 댓글은 수정할 수 없습니다.")
 
         return attrs
 
