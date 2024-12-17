@@ -62,6 +62,42 @@
 - **Error Responses**:
   - 401: 인증 실패
 
+### 1.3 이메일 중복 확인
+- **Endpoint**: `POST /api/auth/check-email`
+- **Request Body**:
+```json
+{
+    "email": "string"
+}
+```
+- **Response (200)**:
+```json
+{
+    "status": "success",
+    "data": {
+        "available": "boolean"
+    }
+}
+```
+
+### 1.4 닉네임 중복 확인
+- **Endpoint**: `POST /api/auth/check-nickname`
+- **Request Body**:
+```json
+{
+    "nickname": "string"
+}
+```
+- **Response (200)**:
+```json
+{
+    "status": "success",
+    "data": {
+        "available": "boolean"
+    }
+}
+```
+
 ## 2. 사용자 관련 API
 
 ### 2.1 프로필 조회
@@ -303,3 +339,155 @@
 - **Error Responses**:
   - 400: 잘못된 요청 (유효성 검증 실패)
   - 500: 이메일 발송 실패
+
+## 6. 관리자 API
+
+### 6.1 사용자 관리
+#### 6.1.1 사용자 목록 조회
+- **Endpoint**: `GET /api/admin/users`
+- **Headers**: Authorization: Bearer {token}
+- **Query Parameters**:
+  - page: number (default: 1)
+  - limit: number (default: 10)
+  - role: string (optional)
+  - search: string (optional)
+- **Response (200)**:
+```json
+{
+    "status": "success",
+    "data": {
+        "users": [{
+            "id": "number",
+            "email": "string",
+            "nickname": "string",
+            "name": "string",
+            "role": "string",
+            "createdAt": "datetime",
+            "status": "ACTIVE | SUSPENDED | DELETED"
+        }],
+        "totalPages": "number",
+        "currentPage": "number"
+    }
+}
+```
+
+#### 6.1.2 사용자 상태 변경
+- **Endpoint**: `PATCH /api/admin/users/{userId}/status`
+- **Headers**: Authorization: Bearer {token}
+- **Request Body**:
+```json
+{
+    "status": "ACTIVE | SUSPENDED | DELETED"
+}
+```
+- **Response (200)**:
+```json
+{
+    "status": "success",
+    "data": {
+        "id": "number",
+        "status": "string"
+    }
+}
+```
+
+### 6.2 게시글 관리
+#### 6.2.1 게시글 관리 목록
+- **Endpoint**: `GET /api/admin/posts`
+- **Headers**: Authorization: Bearer {token}
+- **Query Parameters**:
+  - page: number (default: 1)
+  - limit: number (default: 10)
+  - category: string (optional)
+  - status: string (optional)
+- **Response (200)**:
+```json
+{
+    "status": "success",
+    "data": {
+        "posts": [{
+            "id": "number",
+            "title": "string",
+            "category": "string",
+            "author": {
+                "id": "number",
+                "nickname": "string"
+            },
+            "status": "ACTIVE | HIDDEN | DELETED",
+            "createdAt": "datetime"
+        }],
+        "totalPages": "number",
+        "currentPage": "number"
+    }
+}
+```
+
+#### 6.2.2 게시글 상태 변경
+- **Endpoint**: `PATCH /api/admin/posts/{postId}/status`
+- **Headers**: Authorization: Bearer {token}
+- **Request Body**:
+```json
+{
+    "status": "ACTIVE | HIDDEN | DELETED"
+}
+```
+- **Response (200)**:
+```json
+{
+    "status": "success",
+    "data": {
+        "id": "number",
+        "status": "string"
+    }
+}
+```
+
+### 6.3 문의 관리
+#### 6.3.1 문의 목록 조회
+- **Endpoint**: `GET /api/admin/inquiries`
+- **Headers**: Authorization: Bearer {token}
+- **Query Parameters**:
+  - page: number (default: 1)
+  - limit: number (default: 10)
+  - status: string (optional)
+  - inquiryType: string (optional)
+- **Response (200)**:
+```json
+{
+    "status": "success",
+    "data": {
+        "inquiries": [{
+            "id": "number",
+            "name": "string",
+            "email": "string",
+            "phone": "string",
+            "organizationName": "string",
+            "inquiryType": "COMPANY | WORKSHOP",
+            "status": "PENDING | IN_PROGRESS | COMPLETED",
+            "createdAt": "datetime"
+        }],
+        "totalPages": "number",
+        "currentPage": "number"
+    }
+}
+```
+
+#### 6.3.2 문의 상태 변경
+- **Endpoint**: `PATCH /api/admin/inquiries/{inquiryId}/status`
+- **Headers**: Authorization: Bearer {token}
+- **Request Body**:
+```json
+{
+    "status": "PENDING | IN_PROGRESS | COMPLETED"
+}
+```
+- **Response (200)**:
+```json
+{
+    "status": "success",
+    "data": {
+        "id": "number",
+        "status": "string"
+    }
+}
+```
