@@ -37,6 +37,9 @@ class Comment(models.Model):
         default=Status.ACTIVE,
         help_text="댓글 상태",
     )
+    is_deleted = models.BooleanField(
+        default=False, help_text="삭제 여부 (True인 경우 삭제)"
+    )
     created_at = models.DateTimeField(auto_now_add=True, help_text="작성일시")
     updated_at = models.DateTimeField(auto_now=True, help_text="수정일시")
 
@@ -45,9 +48,23 @@ class Comment(models.Model):
         ordering = ["-created_at"]
         indexes = [
             # 게시글 별 댓글 조회 최적화
-            models.Index(fields=["post", "created_at"])
+            models.Index(fields=["post", "created_at"]),
+            # 삭제되지 않은 댓글 조회 최적화
+            models.Index(fields=["is_deleted"]),
         ]
 
     def __str__(self) -> str:
         # 댓글 내용 앞 20자만 표시
         return f"{self.user}의 댓글 - {self.content[:20]}..."
+
+    def delete(
+        self, using: str | None = None, keep_parents: bool = False
+    ) -> tuple[int, dict[str, int]]:
+        # 소프트 딜리트 구현
+        self.is_deleted = True
+        # Status에도 DELETED 로 변경
+        self.status = self.Status.DELETED
+        self.save(using=using)
+
+        # (삭제된 객체 수, {모델명: 삭제된 객체 수}) 형태로 반환
+        return (1, {f"{self._meta.model_name}": 1})

@@ -45,7 +45,7 @@ class PostCreateSerializer(BaseSerializer):
         # TODO: User 모델 구현 후 수정 필요
         # User 모델에 실제로 있어야함 ['role']
         if getattr(user, "role", None) != "WORKSHOP":
-            raise ValidationError("공방 사장님만 게시글을 작성할 수 있습니다.")
+            raise ValidationError("공방 회원만 게시글을 작성할 수 있습니다.")
         return attrs
 
     def create(self, validated_data: Dict[str, Any]) -> Post:
@@ -68,6 +68,7 @@ class PostListSerializer(BaseSerializer):
     comment_count = serializers.IntegerField(read_only=True)
     author = serializers.SerializerMethodField()
     created_at = serializers.DateTimeField(read_only=True)
+    is_deleted = serializers.BooleanField(read_only=True)
 
     def get_author(self, obj: Post) -> Dict[str, Any]:
         # 작성자 정보를 딕셔너리로 반환
@@ -142,18 +143,24 @@ class PostUpdateSerializer(BaseSerializer):
     def update(self, instance: Post, validated_data: Dict[str, Any]) -> Post:
         # 게시글 수정
         # 입력된 필드만 선택적으로 수정
+        # 삭제된 게시글 수정 방지
+
+        if instance.is_deleted:
+            raise ValidationError("삭제된 게시글은 수정할 수 없습니다.")
+
         instance.title = validated_data.get("title", instance.title)
         instance.content = validated_data.get("content", instance.content)
         instance.category = validated_data.get("category", instance.category)
         instance.save()
 
+        # 수정된 게시글 인스턴스
         return instance
 
 
 # User 모델 role 필드 확인
 # WORKSHOP 값이 유효한지 확인
 # User 모델에 nickname 필드 확인
-# User ahepf workshop_name 확인
+# User 모델에 workshop_name 확인
 
 
 # User 모델 스키마를 공유하고 필드명을 맞추기
