@@ -21,6 +21,16 @@ from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, Spec
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    # API URLs
+    path(
+        "api/",
+        include(
+            [
+                path("posts/", include("posts.urls")),
+            ]
+        ),
+    ),
+    # API
     path("api/", include("users.urls")),
     # API URLs
     path(
