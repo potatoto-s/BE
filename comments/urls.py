@@ -1,13 +1,20 @@
 from django.urls import path
 
-from comments.views import CommentCreateView, CommentDeleteView, CommentListView, CommentUpdateView
+from comments.views import (
+    CommentCreateView,
+    CommentDeleteView,
+    CommentListView,
+    CommentUpdateView,
+)
 
 app_name = "comments"
 
 urlpatterns = [
     # 댓글 목록 조회 - GET
     # /api/posts/{post_id}/comments/
-    path("posts/<int:post_id>/comments/", CommentListView.as_view(), name="comment-list"),
+    path(
+        "posts/<int:post_id>/comments/", CommentListView.as_view(), name="comment-list"
+    ),
     # 댓글 작성 - POST
     # /api/posts/{post_id}/comments/
     path(
