@@ -3,7 +3,7 @@ from typing import Any, Dict, List, Optional, Tuple
 from django.db import transaction
 from django.db.models import F, Prefetch, Q
 from django.shortcuts import get_object_or_404
-from rest_framework.exceptions import ValidationError
+from rest_framework.exceptions import PermissionDenied, ValidationError
 
 from posts.models import Post, PostImage, PostLike
 
@@ -22,24 +22,27 @@ class PostService:
         offset: int = 0,
         limit: int = 10,
     ) -> Tuple[List[Post], int]:
+        # 게시글 목록 조회 (with 필터링, 검색)
 
-        # 기본 쿼리셋 (삭제된 글 제외))
+        # 카테고리 검증
+        category = PostService.validate_category(category)
+
+        # 기본 쿼리셋 구성
         queryset = (
-            Post.objects.select_related("user")  # author 정보를 위한 user join
-            .prefetch_related("images")  # 이미지 prefetch
+            Post.objects.select_related("user")
+            .prefetch_related("images")
             .filter(is_deleted=False)
         )
 
-        # 카테고리 필터링
         if category:
             queryset = queryset.filter(category=category)
 
-        # 검색어 처리 필터링
         if search_keyword:
             queryset = queryset.filter(
                 Q(title__icontains=search_keyword)
                 | Q(content__icontains=search_keyword)
             )
+
         total_count = queryset.count()
         posts = queryset.order_by("-created_at")[offset : offset + limit]
 
@@ -50,23 +53,19 @@ class PostService:
         # 게시글 상세 조회
         # 조회수 증가
 
-        likes_prefetch = Prefetch(
-            "likes",
-            queryset=(
-                PostLike.objects.filter(user_id=user_id)
-                if user_id
-                else PostLike.objects.none()
-            ),
-        )
-        post = get_object_or_404(
-            Post.objects.select_related("user").prefetch_related(
-                "images", likes_prefetch
-            ),
-            id=post_id,
-            is_deleted=False,
-        )
+        # 기본 쿼리셋 구성
+        queryset = Post.objects.select_related("user").prefetch_related("images")
 
-        # 조회수 증가 (race condition 방지를 위한 F 표현식)
+        # 로그인한 사용자의 경우에만 좋아요 정보 prefetch
+        if user_id:
+            likes_prefetch = Prefetch(
+                "likes", queryset=PostLike.objects.filter(user_id=user_id)
+            )
+            queryset = queryset.prefetch_related(likes_prefetch)
+
+        post = get_object_or_404(queryset, id=post_id, is_deleted=False)
+
+        # 조회수 증가 (race condition 방지를 위해 F 표현식 사용)
         Post.objects.filter(id=post_id).update(view_count=F("view_count") + 1)
 
         return post
@@ -105,7 +104,7 @@ class PostService:
 
         # 권한 확인
         if post.user_id != user_id:
-            raise ValidationError("자신의 게시글만 수정할 수 있습니다.")
+            raise PermissionDenied("자신의 게시글만 수정할 수 있습니다.")
 
         # 기본 정보 수정
         for key, value in data.items():
@@ -139,6 +138,12 @@ class PostService:
         post.delete()
 
     @staticmethod
+    def validate_category(category: Optional[str]) -> Optional[str]:
+        if category and category not in dict(Post.Category.choices):
+            raise ValidationError(f"Invalid category: {category}")
+        return category
+
+    @staticmethod
     def _handle_images(post: Post, images: List[str]) -> None:
         # 이미지 처리 헬퍼 메서드
         image_instances = [PostImage(post=post, image_url=image) for image in images]
@@ -164,8 +169,10 @@ class PostService:
             like.delete()
             post.like_count = F("like_count") - 1
             post.save()
+            post.refresh_from_db()  # F 표현식 사용 후 값 갱신
             return False
 
         post.like_count = F("like_count") + 1
         post.save()
+        post.refresh_from_db()  # F 표현식 사용 후 값 갱신
         return True
