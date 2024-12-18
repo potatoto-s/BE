@@ -25,14 +25,14 @@ urlpatterns = [
     # 댓글 수정 - PATCH
     # /api/comments/{comment_id}
     path(
-        "<int:comment_id>/update/",
+        "comments/<int:comment_id>/update/",
         CommentUpdateView.as_view(),
         name="comment-update",
     ),
     # 댓글 삭제 - DELETE
     # /api/comments/{comment_id}/
     path(
-        "<int:comment_id>/delete/",
+        "comments/<int:comment_id>/delete/",
         CommentDeleteView.as_view(),
         name="comment-delete",
     ),
