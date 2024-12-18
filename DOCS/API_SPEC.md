@@ -275,6 +275,11 @@
 - **Headers**: Authorization: Bearer {token}
 - **Response (204)**
 
+### 3.6 게시글 좋아요
+- **Endpoint**: `POST /api/posts/{postId}/like`
+- **Headers**: Authorization: Bearer {token}
+- **Response (200)**:
+
 ## 4. 댓글 관련 API
 
 ### 4.1 댓글 작성

@@ -69,4 +69,13 @@ CREATE TABLE contact_inquiries (
     status VARCHAR(20) NOT NULL DEFAULT 'PENDING' CHECK (status IN ('PENDING', 'IN_PROGRESS', 'COMPLETED')),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Post Likes Table
+CREATE TABLE post_likes (
+    id SERIAL PRIMARY KEY,
+    post_id INTEGER REFERENCES posts(id) ON DELETE CASCADE,
+    user_id INTEGER REFERENCES users(id),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(post_id, user_id)
+);
 ```
