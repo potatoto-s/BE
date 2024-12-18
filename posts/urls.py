@@ -9,6 +9,8 @@ from posts.views import (
     PostUpdateView,
 )
 
+app_name = "posts"
+
 urlpatterns = [
     path("", PostListView.as_view(), name="post-list"),
     path("create/", PostCreateView.as_view(), name="post-create"),

@@ -26,7 +26,8 @@ urlpatterns = [
         "api/",
         include(
             [
-                path("posts/", include("posts.urls")),
+                path("", include("posts.urls")),  # 게시글 관련 URLS
+                path("", include("comments.urls")),  # 댓글 관련 URLS
             ]
         ),
     ),
