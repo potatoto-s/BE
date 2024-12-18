@@ -3,7 +3,7 @@ from typing import Any, Dict, List, Optional, Tuple
 from django.db import transaction
 from django.db.models import F, Prefetch, Q
 from django.shortcuts import get_object_or_404
-from rest_framework.exceptions import PermissionDenied, ValidationError
+from rest_framework.exceptions import ValidationError
 
 from posts.models import Post, PostImage, PostLike
 
