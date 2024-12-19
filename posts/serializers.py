@@ -10,6 +10,12 @@ from posts.models import Post, PostImage, PostLike
 User = get_user_model()
 
 
+class PostSerializer(serializers.ModelSerializer[Any]):
+    class Meta:
+        model = Post
+        fields = "__all__"
+
+
 class BaseSerializer(serializers.Serializer[Any]):
     class Meta:
         abstract = True
@@ -32,17 +38,32 @@ class PostCreateSerializer(BaseSerializer):
     # 공방 사장만 게시글 작성 가능
     # 제목, 내용, 카테고리 필수 입력
 
-    title = serializers.CharField(max_length=255)
-    content = serializers.CharField()
+    title = serializers.CharField(
+        max_length=255,
+        required=True,
+        error_messages={
+            "required": "게시글 제목은 필수 입력 항목입니다.",
+            "blank": "게시글 제목은 비워둘 수 없습니다.",
+        },
+    )
+    content = serializers.CharField(
+        min_length=10,
+        required=True,
+        error_messages={
+            "required": "게시글 내용은 필수 입력 항목입니다.",
+            "blank": "게시글 내용은 비워둘 수 없습니다.",
+            "min_length": "게시글 내용은 최소 10자 이상 입력해주세요.",
+        },
+    )
     category = serializers.ChoiceField(choices=Post.Category.choices)
     images = serializers.ListField(
         child=serializers.ImageField(), required=False, write_only=True
     )
 
     def validate(self, attrs: Dict[str, Any]) -> Dict[str, Any]:
+        if "request" not in self.context:
+            raise ValidationError("Request context is required")
         user = self.context["request"].user
-        if not user.is_authenticated:
-            raise ValidationError("로그인이 필요합니다.")
 
         # TODO: User 모델 구현 후 수정 필요
         # User 모델에 실제로 있어야함 ['role']
@@ -169,6 +190,10 @@ class PostUpdateSerializer(BaseSerializer):
 
         # 수정된 게시글 인스턴스
         return instance
+
+
+class PostLikeResponseSerializer(serializers.Serializer[Any]):
+    is_liked = serializers.BooleanField()
 
 
 # User 모델 role 필드 확인

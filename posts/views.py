@@ -1,6 +1,7 @@
 from typing import Any, List
 
 from django.db import transaction
+from drf_spectacular.utils import OpenApiParameter, extend_schema
 from PIL import Image
 from rest_framework import status
 from rest_framework.exceptions import ValidationError
@@ -12,7 +13,9 @@ from posts.models import PostImage
 from posts.serializers import (
     PostCreateSerializer,
     PostDetailSerializer,
+    PostLikeResponseSerializer,
     PostListSerializer,
+    PostSerializer,
     PostUpdateSerializer,
 )
 from posts.services import PostService
@@ -20,6 +23,8 @@ from posts.services import PostService
 
 # 게시글 목록 조회
 class PostListView(APIView):
+    serializer_class = PostListSerializer
+
     # 클래스 변수로 상수 정의
     MIN_PAGE_SIZE: int = 1
     DEFAULT_PAGE_SIZE: int = 10
@@ -49,6 +54,15 @@ class PostListView(APIView):
         except ValueError:
             raise ValidationError("Invalid pagination parameters: must be numbers")
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name="page", type=int, description="Page number"),
+            OpenApiParameter(name="limit", type=int, description="Items per page"),
+            OpenApiParameter(name="category", type=str, description="Post category"),
+            OpenApiParameter(name="search", type=str, description="Search keyword"),
+        ],
+        responses={200: PostListSerializer(many=True)},
+    )
     def get(self, request: Request) -> Response:
         # 페이지네이션 파라미터 검증
         page, limit = self.validate_pagination_params(
@@ -99,6 +113,8 @@ class PostListView(APIView):
 
 
 class PostCreateView(APIView):
+    serializer_class = PostCreateSerializer
+
     MAX_IMAGE_SIZE: int = 5 * 1024 * 1024  # 5MB
     ALLOWED_IMAGE_TYPES: set[str] = {"image/jpeg", "image/png", "image/gif"}
     MAX_IMAGE_COUNT: int = 10  # 이미지 최대 개수 제한 추가
@@ -142,30 +158,31 @@ class PostCreateView(APIView):
 
         return files
 
+    @extend_schema(request=PostCreateSerializer, responses={201: PostDetailSerializer})
     def post(self, request: Request) -> Response:
 
         # 게시글 생성
-        serializer = PostCreateSerializer(data=request.data)
+        serializer = PostCreateSerializer(
+            data=request.data, context={"request": request}
+        )
         serializer.is_valid(raise_exception=True)
-
-        # 이미지 유효성 검증
-        images = self.validate_images(request.FILES.getlist("images"))
-
-        # 게시글 생성
         post = PostService.create_post(
             user_id=request.user.id,
             data=serializer.validated_data,
-            images=images,
+            images=request.FILES.getlist("images"),
         )
 
         # 응답
         return Response(
-            PostDetailSerializer(post).data,
+            PostDetailSerializer(post, context={"request": request}).data,
             status=status.HTTP_201_CREATED,
         )
 
 
 class PostDetailView(APIView):
+    serializer_class = PostDetailSerializer
+
+    @extend_schema(responses={200: PostDetailSerializer})
     # 게시글 상세 조회
     def get(self, request: Request, post_id: int) -> Response:
         # ETag 처리
@@ -190,6 +207,8 @@ class PostDetailView(APIView):
 
 
 class PostUpdateView(APIView):
+    serializer_class = PostUpdateSerializer
+
     def validate_image_operations(
         self, post_id: int, add_images: List[Any], remove_image_ids: List[int]
     ) -> None:
@@ -205,6 +224,7 @@ class PostUpdateView(APIView):
             if invalid_ids:
                 raise ValidationError(f"Invalid image IDs: {invalid_ids}")
 
+    @extend_schema(request=PostUpdateSerializer, responses={200: PostDetailSerializer})
     # 게시글 수정
     def patch(self, request: Request, post_id: int) -> Response:
         serializer = PostUpdateSerializer(data=request.data)
@@ -225,10 +245,13 @@ class PostUpdateView(APIView):
             remove_image_ids=remove_image_ids,
         )
 
-        return Response(PostDetailSerializer(post).data)
+        return Response(PostDetailSerializer(post, context={"request": request}).data)
 
 
 class PostDeleteView(APIView):
+    serializer_class = PostSerializer
+
+    @extend_schema(responses={204: None})
     # 게시글 삭제
     def delete(self, request: Request, post_id: int) -> Response:
         PostService.delete_post(post_id=post_id, user_id=request.user.id)
@@ -236,7 +259,9 @@ class PostDeleteView(APIView):
 
 
 class PostLikeView(APIView):
-    # 게시글 좋아요
+    serializer_class = PostLikeResponseSerializer  # 좋아요 상태를 반환하는 serializer
+
+    @extend_schema(responses={200: PostLikeResponseSerializer})
     @transaction.atomic
     def post(self, request: Request, post_id: int) -> Response:
         is_liked = PostService.toggle_like(

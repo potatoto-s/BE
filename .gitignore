@@ -269,3 +269,12 @@ pyrightconfig.json
 
 
 .vscode
+# Django migrations 폴더를 무시
+**/migrations/
+
+# 특정 마이그레이션 파일 무시
+**/migrations/*.py
+**/migrations/*.pyc
+
+# __pycache__ 폴더 무시 (컴파일된 Python 파일)
+**/__pycache__/

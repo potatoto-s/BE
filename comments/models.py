@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import models
 
 
@@ -25,7 +26,7 @@ class Comment(models.Model):
     )
     # User 모델 구현 후 수정
     user = models.ForeignKey(
-        "auth.User",
+        settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name="comments",
         help_text="댓글 작성자",
