@@ -97,6 +97,50 @@ class PostListView(APIView):
             }
         )
 
+    # 메인페이지
+    def main_get(self, request: Request) -> Response:
+        # 좋아요 TOP10 조회
+        is_favorite_top10 = request.query_params.get("favorite_top10")
+        if is_favorite_top10:
+            posts, _ = PostService.get_post_list(favorite_top10=True)
+            serializer = PostListSerializer(
+                posts, many=True, context={"request": request}
+            )
+            return Response({"data": serializer.data})
+
+        # 카테고리별 5개 게시글 조회
+        category = request.query_params.get("category")
+        limit = int(request.query_params.get("limit", "5"))
+
+        # 일반 목록 조회
+        page, limit = self.validate_pagination_params(
+            request.query_params.get("page"), limit
+        )
+        offset = (page - 1) * limit
+
+        search = request.query_params.get("search")
+
+        posts, total_count = PostService.get_post_list(
+            category=category,
+            search_keyword=search,
+            offset=offset,
+            limit=limit,
+        )
+        serializer = PostListSerializer(posts, many=True, context={"request": request})
+        return Response(
+            {
+                "data": serializer.data,
+                "pagination": {
+                    "total_pages": (total_count + limit - 1) // limit,
+                    "current_page": page,
+                    "total_count": total_count,
+                    "has_next": (page * limit) < total_count,
+                    "has_previous": page > 1,
+                    "limit": limit,
+                },
+            }
+        )
+
 
 class PostCreateView(APIView):
     MAX_IMAGE_SIZE: int = 5 * 1024 * 1024  # 5MB
