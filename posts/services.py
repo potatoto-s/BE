@@ -21,6 +21,7 @@ class PostService:
         search_keyword: Optional[str] = None,
         offset: int = 0,
         limit: int = 10,
+        favorite_top10: bool = False,
     ) -> Tuple[List[Post], int]:
         # 게시글 목록 조회 (with 필터링, 검색)
 
@@ -34,6 +35,9 @@ class PostService:
             .filter(is_deleted=False)
         )
 
+        # 좋아요 TOP10 조회
+        if favorite_top10:
+            return list(queryset.order_by("-like_count")[:10]), 10
         if category:
             queryset = queryset.filter(category=category)
 
