@@ -1,100 +1,239 @@
 # API 명세서
 
 ## 1. 인증 관련 API
+## API 명세서
 
-### 1.1 회원가입
-- **Endpoint**: `POST /api/auth/register`
-- **Request Body**:
+## 회원가입 (POST /api/users/signup/)
+
+**Request Body**
 ```json
 {
+  "email": "string (필수)",
+  "password": "string (필수)",
+  "confirm_password": "string (필수)",
+  "nickname": "string (필수, 2~10자)",
+  "district": "string (필수)",
+  "neighborhood": "string (필수)",
+  "role": "string (필수, 'company' 또는 'workshop')",
+  "company_name": "string (role이 'company'일 때 필수)",
+  "workshop_name": "string (role이 'workshop'일 때 필수)"
+}
+```
+
+**Response (201 Created)**
+```json
+{
+  "message": "회원가입이 완료되었습니다. 이메일로 발송된 인증 코드를 입력해주세요.",
+  "user_id": "integer"
+}
+```
+
+## 이메일 인증 (POST /api/users/email-verification/)
+
+**Request Body**
+```json
+{
+  "user_id": "integer (필수)",
+  "code": "string (필수, 6자리)"
+}
+```
+
+**Response (200 OK)**
+```json
+{
+  "message": "이메일이 성공적으로 인증되었습니다."
+}
+```
+
+## 로그인 (POST /api/users/login/)
+
+**Request Body**
+```json
+{
+  "email": "string (필수)",
+  "password": "string (필수)"
+}
+```
+
+**Response (200 OK)**
+```json
+{
+  "access": "string",
+  "refresh": "string",
+  "user": {
     "email": "string",
-    "password": "string",
-    "passwordConfirm": "string",
     "nickname": "string",
-    "name": "string",
-    "phone": "string",
-    "role": "COMPANY | WORKSHOP",
-    "companyName": "string (optional)",
-    "workshopName": "string (optional)"
-}
-```
-- **Response (200)**:
-```json
-{
-    "status": "success",
-    "data": {
-        "id": "number",
-        "email": "string",
-        "nickname": "string",
-        "name": "string",
-        "role": "string"
-    }
-}
-```
-- **Error Responses**:
-  - 400: 잘못된 요청 (유효성 검증 실패)
-  - 409: 이메일 또는 닉네임 중복
-
-### 1.2 로그인
-- **Endpoint**: `POST /api/auth/login`
-- **Request Body**:
-```json
-{
-    "email": "string",
-    "password": "string"
-}
-```
-- **Response (200)**:
-```json
-{
-    "status": "success",
-    "data": {
-        "accessToken": "string",
-        "user": {
-            "id": "number",
-            "email": "string",
-            "nickname": "string",
-            "role": "string"
-        }
-    }
-}
-```
-- **Error Responses**:
-  - 401: 인증 실패
-
-### 1.3 이메일 중복 확인
-- **Endpoint**: `POST /api/auth/check-email`
-- **Request Body**:
-```json
-{
-    "email": "string"
-}
-```
-- **Response (200)**:
-```json
-{
-    "status": "success",
-    "data": {
-        "available": "boolean"
-    }
+    "profilePhoto": "string",
+    "district": "string",
+    "neighborhood": "string",
+    "bio": "string",
+    "role": "string",
+    "company_name": "string",
+    "workshop_name": "string"
+  }
 }
 ```
 
-### 1.4 닉네임 중복 확인
-- **Endpoint**: `POST /api/auth/check-nickname`
-- **Request Body**:
+## 로그아웃 (POST /api/users/logout/)
+
+**Request Body**
 ```json
 {
-    "nickname": "string"
+  "refresh_token": "string (필수)"
 }
 ```
-- **Response (200)**:
+
+**Response (200 OK)**
 ```json
 {
-    "status": "success",
-    "data": {
-        "available": "boolean"
-    }
+  "message": "로그아웃되었습니다."
+}
+```
+
+## 사용자 정보 조회 (GET /api/users/user/)
+
+**Response (200 OK)**
+```json
+{
+  "email": "string",
+  "nickname": "string",
+  "profilePhoto": "string",
+  "district": "string",
+  "neighborhood": "string",
+  "bio": "string",
+  "role": "string",
+  "company_name": "string",
+  "workshop_name": "string"
+}
+```
+
+## 사용자 정보 수정 (PATCH /api/users/user/)
+
+**Request Body**
+```json
+{
+  "nickname": "string (선택)",
+  "profilePhoto": "file (선택)",
+  "district": "string (선택)",
+  "neighborhood": "string (선택)",
+  "bio": "string (선택)",
+  "company_name": "string (선택)",
+  "workshop_name": "string (선택)"
+}
+```
+
+**Response (200 OK)**
+```json
+{
+  "email": "string",
+  "nickname": "string",
+  "profilePhoto": "string",
+  "district": "string",
+  "neighborhood": "string",
+  "bio": "string",
+  "role": "string",
+  "company_name": "string",
+  "workshop_name": "string"
+}
+```
+
+## 회원 탈퇴 (DELETE /api/users/user/delete/)
+
+**Response (204 No Content)**
+
+## 비밀번호 변경 (POST /api/users/password-change/)
+
+**Request Body**
+```json
+{
+  "current_password": "string (필수)",
+  "new_password": "string (필수)",
+  "new_password_confirm": "string (필수)"
+}
+```
+
+**Response (200 OK)**
+```json
+{
+  "message": "비밀번호가 성공적으로 변경되었습니다."
+}
+```
+
+## 비밀번호 재설정 (POST /api/users/password-reset/)
+
+**Request Body**
+```json
+{
+  "email": "string (필수)"
+}
+```
+
+**Response (200 OK)**
+```json
+{
+  "message": "임시 비밀번호가 이메일로 발송되었습니다."
+}
+```
+
+## 이메일 중복 확인 (POST /api/users/email-check/)
+
+**Request Body**
+```json
+{
+  "email": "string (필수)"
+}
+```
+
+**Response (200 OK)**
+```json
+{
+  "available": "boolean"
+}
+```
+
+## 닉네임 중복 확인 (POST /api/users/nickname-check/)
+
+**Request Body**
+```json
+{
+  "nickname": "string (필수)"
+}
+```
+
+**Response (200 OK)**
+```json
+{
+  "available": "boolean"
+}
+```
+
+## 공통 에러 응답
+
+**400 Bad Request**
+```json
+{
+  "error": "string"
+}
+```
+
+**401 Unauthorized**
+```json
+{
+  "detail": "Authentication credentials were not provided."
+}
+```
+
+**403 Forbidden**
+```json
+{
+  "detail": "You do not have permission to perform this action."
+}
+```
+
+**404 Not Found**
+```json
+{
+  "error": "string"
 }
 ```
 
@@ -148,199 +287,301 @@
 
 ## 3. 게시글 관련 API
 
-### 3.1 게시글 작성
-- **Endpoint**: `POST /api/posts`
-- **Headers**: Authorization: Bearer {token}
-- **Request Body** (multipart/form-data):
+## API 명세서
+
+## 게시글 목록 조회 (GET /api/posts/)
+
+**Query Parameters**
+- `page`: (선택) 페이지 번호 (기본값: 1)
+- `limit`: (선택) 페이지당 항목 수 (기본값: 10, 최대: 50)
+- `category`: (선택) 게시글 카테고리 필터링
+- `search`: (선택) 검색어
+
+**Response (200 OK)**
 ```json
 {
-    "title": "string",
-    "content": "string",
-    "category": "string",
-    "images": "File[]"
-}
-```
-- **Response (201)**:
-```json
-{
-    "status": "success",
-    "data": {
-        "id": "number",
-        "title": "string",
-        "content": "string",
-        "category": "string",
-        "imageUrls": "string[]",
-        "createdAt": "datetime"
+  "data": [
+    {
+      "id": "integer",
+      "title": "string",
+      "category": "string",
+      "view_count": "integer",
+      "like_count": "integer",
+      "comment_count": "integer",
+      "author": {
+        "id": "integer",
+        "nickname": "string",
+        "workshop_name": "string"
+      },
+      "created_at": "datetime",
+      "is_deleted": "boolean"
     }
+  ],
+  "pagination": {
+    "total_pages": "integer",
+    "current_page": "integer",
+    "total_count": "integer",
+    "has_next": "boolean",
+    "has_previous": "boolean",
+    "limit": "integer"
+  }
 }
 ```
-- **Error Responses**:
-  - 401: 권한 없음 (비로그인 또는 공방 회원이 아닌 경우)
 
-### 3.2 게시글 목록 조회
-- **Endpoint**: `GET /api/posts`
-- **Query Parameters**:
-  - page: number (default: 1)
-  - limit: number (default: 10)
-  - category: string (optional)
-  - search: string (optional)
-- **Response (200)**:
+## 게시글 생성 (POST /api/posts/create/)
+
+**Request Body**
 ```json
 {
-    "status": "success",
-    "data": {
-        "posts": [{
-            "id": "number",
-            "title": "string",
-            "content": "string",
-            "category": "string",
-            "viewCount": "number",
-            "imageUrls": "string[]",
-            "createdAt": "datetime",
-            "author": {
-                "id": "number",
-                "nickname": "string",
-                "role": "string"
-            }
-        }],
-        "totalPages": "number",
-        "currentPage": "number"
+  "title": "string (필수)",
+  "content": "string (필수, 최소 10자)",
+  "category": "string (필수)",
+  "images": "file[] (선택)"
+}
+```
+
+**Response (201 Created)**
+```json
+{
+  "id": "integer",
+  "title": "string",
+  "content": "string",
+  "category": "string",
+  "view_count": "integer",
+  "like_count": "integer",
+  "comment_count": "integer",
+  "author": {
+    "id": "integer",
+    "nickname": "string",
+    "workshop_name": "string"
+  },
+  "images": [
+    {
+      "id": "integer",
+      "image_url": "string",
+      "created_at": "datetime"
     }
+  ],
+  "is_liked": "boolean",
+  "created_at": "datetime",
+  "updated_at": "datetime"
 }
 ```
 
-### 3.3 게시글 상세 조회
-- **Endpoint**: `GET /api/posts/{postId}`
-- **Response (200)**:
+## 게시글 상세 조회 (GET /api/posts/{post_id}/)
+
+**Response (200 OK)**
 ```json
 {
-    "status": "success",
-    "data": {
-        "id": "number",
-        "title": "string",
-        "content": "string",
-        "category": "string",
-        "viewCount": "number",
-        "imageUrls": "string[]",
-        "createdAt": "datetime",
-        "author": {
-            "id": "number",
-            "nickname": "string",
-            "role": "string"
-        },
-        "comments": [{
-            "id": "number",
-            "content": "string",
-            "createdAt": "datetime",
-            "author": {
-                "id": "number",
-                "nickname": "string",
-                "role": "string",
-                "companyName": "string?"
-            }
-        }]
+  "id": "integer",
+  "title": "string",
+  "content": "string",
+  "category": "string",
+  "view_count": "integer",
+  "like_count": "integer",
+  "comment_count": "integer",
+  "author": {
+    "id": "integer",
+    "nickname": "string",
+    "workshop_name": "string"
+  },
+  "images": [
+    {
+      "id": "integer",
+      "image_url": "string",
+      "created_at": "datetime"
     }
+  ],
+  "is_liked": "boolean",
+  "created_at": "datetime",
+  "updated_at": "datetime"
 }
 ```
 
-### 3.4 게시글 수정
-- **Endpoint**: `PATCH /api/posts/{postId}`
-- **Headers**: Authorization: Bearer {token}
-- **Request Body**:
+## 게시글 수정 (PATCH /api/posts/{post_id}/update/)
+
+**Request Body**
 ```json
 {
-    "title": "string?",
-    "content": "string?",
-    "category": "string?",
-    "addImages": "File[]?",
-    "removeImageIds": "number[]?"
+  "title": "string (선택)",
+  "content": "string (선택)",
+  "category": "string (선택)",
+  "add_images": "file[] (선택)",
+  "remove_image_ids": "integer[] (선택)"
 }
 ```
-- **Response (200)**:
+
+**Response (200 OK)**
 ```json
 {
-    "status": "success",
-    "data": {
-        "id": "number",
-        "title": "string",
-        "content": "string",
-        "category": "string",
-        "imageUrls": "string[]"
+  "id": "integer",
+  "title": "string",
+  "content": "string",
+  "category": "string",
+  "view_count": "integer",
+  "like_count": "integer",
+  "comment_count": "integer",
+  "author": {
+    "id": "integer",
+    "nickname": "string",
+    "workshop_name": "string"
+  },
+  "images": [
+    {
+      "id": "integer",
+      "image_url": "string",
+      "created_at": "datetime"
     }
+  ],
+  "is_liked": "boolean",
+  "created_at": "datetime",
+  "updated_at": "datetime"
 }
 ```
 
-### 3.5 게시글 삭제
-- **Endpoint**: `DELETE /api/posts/{postId}`
-- **Headers**: Authorization: Bearer {token}
-- **Response (204)**
+## 게시글 삭제 (DELETE /api/posts/{post_id}/delete/)
 
-### 3.6 게시글 좋아요
-- **Endpoint**: `POST /api/posts/{postId}/like`
-- **Headers**: Authorization: Bearer {token}
-- **Response (200)**:
+**Response (204 No Content)**
 
-## 4. 댓글 관련 API
+## 게시글 좋아요 토글 (POST /api/posts/{post_id}/like/)
 
-### 4.1 댓글 작성
-- **Endpoint**: `POST /api/posts/{postId}/comments`
-- **Headers**: Authorization: Bearer {token}
-- **Request Body**:
+**Response (200 OK)**
 ```json
 {
-    "content": "string"
-}
-```
-- **Response (201)**:
-```json
-{
-    "status": "success",
-    "data": {
-        "id": "number",
-        "content": "string",
-        "createdAt": "datetime",
-        "author": {
-            "id": "number",
-            "nickname": "string",
-            "role": "string",
-            "companyName": "string?"
-        }
-    }
+  "is_liked": "boolean"
 }
 ```
 
-### 4.2 댓글 삭제
-- **Endpoint**: `DELETE /api/comments/{commentId}`
-- **Headers**: Authorization: Bearer {token}
-- **Response (204)**
+## 공통 에러 응답
 
-## 5. 문의하기 API
-
-### 5.1 문의하기
-- **Endpoint**: `POST /api/contact`
-- **Headers**: Authorization: Bearer {token}
-- **Request Body**:
+**400 Bad Request**
 ```json
 {
-    "name": "string",
-    "email": "string",
-    "phone": "string",
-    "organizationName": "string",
-    "content": "string",
-    "preferredContact": "EMAIL | PHONE",
-    "inquiryType": "COMPANY | WORKSHOP"
+  "detail": "string"
 }
 ```
-- **Response (201)**:
+
+**401 Unauthorized**
 ```json
 {
-    "status": "success",
-    "data": {
-        "id": "number",
-        "message": "문의가 성공적으로 접수되었습니다."
-    }
+  "detail": "Authentication credentials were not provided."
 }
 ```
-- **Error Responses**:
-  - 400: 잘못된 요청 (유효성 검증 실패)
-  - 500: 이메일 발송 실패
+
+**403 Forbidden**
+```json
+{
+  "detail": "You do not have permission to perform this action."
+}
+```
+
+**404 Not Found**
+```json
+{
+  "detail": "Not found."
+}
+```
+
+
+## 4.문의하기 관련 API
+
+## API 명세서
+
+## 문의하기 (POST /api/contact/)
+
+**Request Body**
+```json
+{
+  "name": "string (필수)",
+  "email": "string (필수, 이메일 형식)",
+  "phone": "string (필수, 최대 20자)",
+  "message": "string (필수)",
+  "company_name": "string (선택, 최대 100자)",
+  "prefered_reply": "string (필수, 'email' 또는 'phone')"
+}
+```
+
+**Response (201 Created)**
+```json
+{
+  "id": "integer",
+  "name": "string",
+  "email": "string",
+  "phone": "string",
+  "message": "string",
+  "company_name": "string",
+  "prefered_reply": "string",
+  "created_at": "datetime"
+}
+```
+
+## 문의 내역 조회 (GET /api/contact/{inquiry_id}/)
+
+**Response (200 OK)**
+```json
+{
+  "id": "integer",
+  "name": "string",
+  "email": "string",
+  "phone": "string",
+  "message": "string",
+  "company_name": "string",
+  "prefered_reply": "string",
+  "created_at": "datetime"
+}
+```
+
+## 문의 내역 수정 (PATCH /api/contact/{inquiry_id}/)
+
+**Request Body**
+```json
+{
+  "name": "string (선택)",
+  "email": "string (선택)",
+  "phone": "string (선택)",
+  "message": "string (선택)",
+  "company_name": "string (선택)",
+  "prefered_reply": "string (선택)"
+}
+```
+
+**Response (200 OK)**
+```json
+{
+  "id": "integer",
+  "name": "string",
+  "email": "string",
+  "phone": "string",
+  "message": "string",
+  "company_name": "string",
+  "prefered_reply": "string",
+  "created_at": "datetime"
+}
+```
+
+## 공통 에러 응답
+
+**400 Bad Request**
+```json
+{
+  "error": {
+    "name": ["이 필드는 필수 항목입니다."],
+    "email": ["유효한 이메일 주소를 입력하세요."],
+    "prefered_reply": ["선호하는 답변 방식은 'email' 또는 'phone'이어야 합니다."]
+  }
+}
+```
+
+**404 Not Found**
+```json
+{
+  "detail": "Not found."
+}
+```
+
+**500 Internal Server Error**
+```json
+{
+  "detail": "이메일 전송에 실패했습니다."
+}
+```
