@@ -1,13 +1,14 @@
 from typing import Any, List
+
 from django.db import transaction
 from drf_spectacular.utils import OpenApiParameter, extend_schema
 from PIL import Image
 from rest_framework import status
 from rest_framework.exceptions import ValidationError
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
 
 from posts.models import PostImage
 from posts.serializers import (
@@ -24,20 +25,39 @@ from posts.services import PostService
 # 게시글 목록 조회
 class PostListView(APIView):
     serializer_class = PostListSerializer
-    PAGE_SIZE: int = 10  # 더보기 방식으로 고정 사이즈
 
     @extend_schema(
         parameters=[
-            OpenApiParameter(name="cursor", type=int, description="마지막으로 본 게시글 ID"),
+            OpenApiParameter(
+                name="cursor", type=int, description="마지막으로 본 게시글 ID"
+            ),
             OpenApiParameter(name="category", type=str, description="게시글 카테고리"),
             OpenApiParameter(name="search", type=str, description="검색어"),
+            OpenApiParameter(
+                name="top_liked", type=bool, description="좋아요 TOP 10 조회"
+            ),
+            OpenApiParameter(
+                name="limit", type=int, description="조회할 게시글 수 (5 또는 10)"
+            ),
         ],
         responses={200: PostListSerializer(many=True)},
     )
     def get(self, request: Request) -> Response:
-        cursor = request.query_params.get("cursor")
+        cursor_param = request.query_params.get("cursor")
         category = request.query_params.get("category")
         search = request.query_params.get("search")
+        is_top_liked = request.query_params.get("top_liked") == "true"
+
+        # 카테고리 limit 설정
+        try:
+            limit = int(request.query_params.get("limit", "10"))
+            if limit not in [5, 10]:
+                limit = 10
+        except (ValueError, TypeError):
+            limit = 10
+
+        # cursor 파라미터 처리
+        cursor = int(cursor_param) if cursor_param and cursor_param.isdigit() else None
 
         # context 구성
         context = {
@@ -50,16 +70,19 @@ class PostListView(APIView):
             category=category,
             search_keyword=search,
             cursor=cursor,
-            limit=self.PAGE_SIZE,
+            limit=limit,  # PAGE_SIZE 대신 limit 사용
+            is_top_liked=is_top_liked,
         )
 
         serializer = PostListSerializer(posts, many=True, context=context)
-        
-        return Response({
-            "data": serializer.data,
-            "has_next": has_next,
-            "next_cursor": next_cursor
-        })
+
+        # TOP 10 조회 시에는 페이지네이션 정보 제외
+        if is_top_liked:
+            return Response({"data": serializer.data})
+
+        return Response(
+            {"data": serializer.data, "has_next": has_next, "next_cursor": next_cursor}
+        )
 
 
 class PostDetailView(APIView):
@@ -71,7 +94,7 @@ class PostDetailView(APIView):
             post_id=post_id,
             user_id=request.user.id if request.user.is_authenticated else None,
         )
-        
+
         # 조회수 증가
         PostService.increase_view_count(post_id)
 
@@ -100,7 +123,9 @@ class PostCreateView(APIView):
             return files
 
         if len(files) > cls.MAX_IMAGE_COUNT:
-            raise ValidationError(f"이미지는 최대 {cls.MAX_IMAGE_COUNT}개까지 업로드 가능합니다")
+            raise ValidationError(
+                f"이미지는 최대 {cls.MAX_IMAGE_COUNT}개까지 업로드 가능합니다"
+            )
 
         total_size = 0
         for image in files:
@@ -109,10 +134,17 @@ class PostCreateView(APIView):
 
             total_size += image.size
             if image.size > cls.MAX_IMAGE_SIZE:
-                raise ValidationError(f"이미지 크기는 {cls.MAX_IMAGE_SIZE // 1024 // 1024}MB를 초과할 수 없습니다")
+                raise ValidationError(
+                    f"이미지 크기는 {cls.MAX_IMAGE_SIZE // 1024 // 1024}MB를 초과할 수 없습니다"
+                )
 
-            if not hasattr(image, "content_type") or image.content_type not in cls.ALLOWED_IMAGE_TYPES:
-                raise ValidationError(f"허용된 이미지 형식: {', '.join(cls.ALLOWED_IMAGE_TYPES)}")
+            if (
+                not hasattr(image, "content_type")
+                or image.content_type not in cls.ALLOWED_IMAGE_TYPES
+            ):
+                raise ValidationError(
+                    f"허용된 이미지 형식: {', '.join(cls.ALLOWED_IMAGE_TYPES)}"
+                )
 
             try:
                 Image.open(image).verify()
@@ -123,9 +155,11 @@ class PostCreateView(APIView):
 
     @extend_schema(request=PostCreateSerializer, responses={201: PostDetailSerializer})
     def post(self, request: Request) -> Response:
-        serializer = PostCreateSerializer(data=request.data, context={"request": request})
+        serializer = PostCreateSerializer(
+            data=request.data, context={"request": request}
+        )
         serializer.is_valid(raise_exception=True)
-        
+
         post = PostService.create_post(
             user_id=request.user.id,
             data=serializer.validated_data,
@@ -195,27 +229,27 @@ class PostLikeView(APIView):
         if not request.user.is_authenticated:
             return Response(
                 {"detail": "로그인이 필요한 서비스입니다."},
-                status=status.HTTP_401_UNAUTHORIZED
+                status=status.HTTP_401_UNAUTHORIZED,
             )
-        
+
         is_liked = PostService.toggle_like(
             post_id=post_id,
             user_id=request.user.id,
         )
-        return Response({
-            "is_liked": is_liked,
-            "message": "좋아요가 처리되었습니다"
-        })
+        return Response({"is_liked": is_liked, "message": "좋아요가 처리되었습니다"})
 
 
 class UserPostListView(APIView):
     """사용자의 게시글 목록 조회 (마이페이지)"""
+
     serializer_class = PostListSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
 
     @extend_schema(
         parameters=[
-            OpenApiParameter(name="cursor", type=int, description="마지막으로 본 게시글 ID"),
+            OpenApiParameter(
+                name="cursor", type=int, description="마지막으로 본 게시글 ID"
+            ),
         ],
         responses={200: PostListSerializer(many=True)},
     )
@@ -223,19 +257,17 @@ class UserPostListView(APIView):
         if not request.user.is_authenticated:
             return Response(
                 {"detail": "로그인이 필요한 서비스입니다."},
-                status=status.HTTP_401_UNAUTHORIZED
+                status=status.HTTP_401_UNAUTHORIZED,
             )
 
-        cursor = request.query_params.get("cursor")
+        cursor_param = request.query_params.get("cursor")
+        cursor = int(cursor_param) if cursor_param and cursor_param.isdigit() else None
+
         posts, has_next, next_cursor = PostService.get_user_posts(
-            user_id=request.user.id,
-            cursor=cursor,
-            limit=10
+            user_id=request.user.id, cursor=cursor, limit=10
         )
 
         serializer = PostListSerializer(posts, many=True, context={"request": request})
-        return Response({
-            "data": serializer.data,
-            "has_next": has_next,
-            "next_cursor": next_cursor
-        })
+        return Response(
+            {"data": serializer.data, "has_next": has_next, "next_cursor": next_cursor}
+        )

@@ -15,6 +15,7 @@ class PostService:
         search_keyword: Optional[str] = None,
         cursor: Optional[int] = None,
         limit: int = 10,
+        is_top_liked: bool = False,
     ) -> Tuple[List[Post], bool, Optional[int]]:
         # 카테고리 검증
         category = PostService.validate_category(category)
@@ -25,14 +26,23 @@ class PostService:
             .prefetch_related("images")
             .filter(is_deleted=False)
         )
+        # 카테고리 limit 설정
+        if limit not in [5, 10]:
+            limit = 10
 
+        # 좋아요 TOP 10 조회
+        if is_top_liked:
+            posts = list(queryset.order_by("-like_count", "-created_at")[:10])
+            return posts, False, None
+
+        # 기존 로직
         if category:
             queryset = queryset.filter(category=category)
 
         if search_keyword:
             queryset = queryset.filter(
-                Q(title__icontains=search_keyword) |
-                Q(content__icontains=search_keyword)
+                Q(title__icontains=search_keyword)
+                | Q(content__icontains=search_keyword)
             )
 
         # 커서 기반 페이지네이션
@@ -40,7 +50,7 @@ class PostService:
             queryset = queryset.filter(id__lt=cursor)
 
         # 정렬 및 제한
-        posts = queryset.order_by("-id")[:limit + 1]
+        posts = list(queryset.order_by("-id")[: limit + 1])
         posts_list = list(posts)
 
         # 다음 페이지 존재 여부 확인
@@ -55,9 +65,7 @@ class PostService:
 
     @staticmethod
     def get_user_posts(
-        user_id: int,
-        cursor: Optional[int] = None,
-        limit: int = 10
+        user_id: int, cursor: Optional[int] = None, limit: int = 10
     ) -> Tuple[List[Post], bool, Optional[int]]:
         queryset = (
             Post.objects.select_related("user")
@@ -68,7 +76,7 @@ class PostService:
         if cursor:
             queryset = queryset.filter(id__lt=cursor)
 
-        posts = queryset.order_by("-id")[:limit + 1]
+        posts = queryset.order_by("-id")[: limit + 1]
         posts_list = list(posts)
 
         has_next = len(posts_list) > limit
@@ -85,7 +93,6 @@ class PostService:
         queryset = Post.objects.select_related("user").prefetch_related(
             "images",
             "comments__user",  # 댓글과 댓글 작성자 정보도 함께 조회
-            "likes",
         )
 
         if user_id:
