@@ -28,11 +28,17 @@ class PostListView(APIView):
 
     @extend_schema(
         parameters=[
-            OpenApiParameter(name="cursor", type=int, description="마지막으로 본 게시글 ID"),
+            OpenApiParameter(
+                name="cursor", type=int, description="마지막으로 본 게시글 ID"
+            ),
             OpenApiParameter(name="category", type=str, description="게시글 카테고리"),
             OpenApiParameter(name="search", type=str, description="검색어"),
-            OpenApiParameter(name="top_liked", type=bool, description="좋아요 TOP 10 조회"),
-            OpenApiParameter(name="limit", type=int, description="조회할 게시글 수 (5 또는 10)"),
+            OpenApiParameter(
+                name="top_liked", type=bool, description="좋아요 TOP 10 조회"
+            ),
+            OpenApiParameter(
+                name="limit", type=int, description="조회할 게시글 수 (5 또는 10)"
+            ),
         ],
         responses={200: PostListSerializer(many=True)},
     )
@@ -74,7 +80,9 @@ class PostListView(APIView):
         if is_top_liked:
             return Response({"data": serializer.data})
 
-        return Response({"data": serializer.data, "has_next": has_next, "next_cursor": next_cursor})
+        return Response(
+            {"data": serializer.data, "has_next": has_next, "next_cursor": next_cursor}
+        )
 
 
 class PostDetailView(APIView):
@@ -115,7 +123,9 @@ class PostCreateView(APIView):
             return files
 
         if len(files) > cls.MAX_IMAGE_COUNT:
-            raise ValidationError(f"이미지는 최대 {cls.MAX_IMAGE_COUNT}개까지 업로드 가능합니다")
+            raise ValidationError(
+                f"이미지는 최대 {cls.MAX_IMAGE_COUNT}개까지 업로드 가능합니다"
+            )
 
         total_size = 0
         for image in files:
@@ -132,7 +142,9 @@ class PostCreateView(APIView):
                 not hasattr(image, "content_type")
                 or image.content_type not in cls.ALLOWED_IMAGE_TYPES
             ):
-                raise ValidationError(f"허용된 이미지 형식: {', '.join(cls.ALLOWED_IMAGE_TYPES)}")
+                raise ValidationError(
+                    f"허용된 이미지 형식: {', '.join(cls.ALLOWED_IMAGE_TYPES)}"
+                )
 
             try:
                 Image.open(image).verify()
@@ -143,7 +155,9 @@ class PostCreateView(APIView):
 
     @extend_schema(request=PostCreateSerializer, responses={201: PostDetailSerializer})
     def post(self, request: Request) -> Response:
-        serializer = PostCreateSerializer(data=request.data, context={"request": request})
+        serializer = PostCreateSerializer(
+            data=request.data, context={"request": request}
+        )
         serializer.is_valid(raise_exception=True)
 
         post = PostService.create_post(
@@ -167,9 +181,9 @@ class PostUpdateView(APIView):
     ) -> None:
         if remove_image_ids:
             existing_images = set(
-                PostImage.objects.filter(post_id=post_id, id__in=remove_image_ids).values_list(
-                    "id", flat=True
-                )
+                PostImage.objects.filter(
+                    post_id=post_id, id__in=remove_image_ids
+                ).values_list("id", flat=True)
             )
             invalid_ids = set(remove_image_ids) - existing_images
             if invalid_ids:
@@ -254,4 +268,6 @@ class UserPostListView(APIView):
         )
 
         serializer = PostListSerializer(posts, many=True, context={"request": request})
-        return Response({"data": serializer.data, "has_next": has_next, "next_cursor": next_cursor})
+        return Response(
+            {"data": serializer.data, "has_next": has_next, "next_cursor": next_cursor}
+        )
