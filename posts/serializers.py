@@ -6,6 +6,8 @@ from rest_framework.exceptions import ValidationError
 
 # from rest_framework.exceptions import ValidationError
 from posts.models import Post, PostImage, PostLike
+from comments.serializers import CommentResponseSerializer
+
 
 User = get_user_model()
 
@@ -92,6 +94,7 @@ class PostDetailSerializer(BaseSerializer):
     author = serializers.SerializerMethodField()
     images = PostImageSerializer(many=True, read_only=True)
     is_liked = serializers.SerializerMethodField()
+    comments = CommentResponseSerializer(many=True, read_only=True)
     created_at = serializers.DateTimeField(read_only=True)
     updated_at = serializers.DateTimeField(read_only=True)
 
