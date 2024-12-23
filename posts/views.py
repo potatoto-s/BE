@@ -233,7 +233,9 @@ class UserPostListView(APIView):
 
     @extend_schema(
         parameters=[
-            OpenApiParameter(name="cursor", type=int, description="마지막으로 본 게시글 ID"),
+            OpenApiParameter(
+                name="cursor", type=int, description="마지막으로 본 게시글 ID"
+            ),
         ],
         responses={200: PostListSerializer(many=True)},
     )
