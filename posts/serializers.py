@@ -4,10 +4,10 @@ from django.contrib.auth import get_user_model
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-# from rest_framework.exceptions import ValidationError
-from posts.models import Post, PostImage, PostLike
 from comments.serializers import CommentResponseSerializer
 
+# from rest_framework.exceptions import ValidationError
+from posts.models import Post, PostImage, PostLike
 
 User = get_user_model()
 
