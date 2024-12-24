@@ -84,3 +84,33 @@ class CustomTokenObtainPairView(TokenObtainPairView):
     def post(self, request, *args, **kwargs):
         """이메일과 비밀번호로 로그인하여 토큰을 발급받습니다."""
         return super().post(request, *args, **kwargs)
+
+
+class EmailCheckView(generics.CreateAPIView):
+    serializer_class = CheckEmailSerializer
+    permission_classes = [AllowAny]
+
+    @swagger_auto_schema(
+        operation_summary="이메일 중복 확인",
+        responses={200: "사용 가능한 이메일", 400: "중복된 이메일"},
+    )
+    def post(self, request, *args, **kwargs):
+        """이메일 중복 여부를 확인합니다."""
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        return Response({"message": "사용 가능한 이메일입니다."}, status=status.HTTP_200_OK)
+
+
+class NicknameCheckView(generics.CreateAPIView):
+    serializer_class = CheckNicknameSerializer
+    permission_classes = [AllowAny]
+
+    @swagger_auto_schema(
+        operation_summary="닉네임 중복 확인",
+        responses={200: "사용 가능한 닉네임", 400: "중복된 닉네임"},
+    )
+    def post(self, request, *args, **kwargs):
+        """닉네임 중복 여부를 확인합니다."""
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        return Response({"message": "사용 가능한 닉네임입니다."}, status=status.HTTP_200_OK)
