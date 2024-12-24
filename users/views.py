@@ -36,3 +36,17 @@ class UserViewSet(GenericViewSet, RetrieveModelMixin, UpdateModelMixin, DestroyM
     def retrieve(self, request, *args, **kwargs):
         """현재 로그인한 사용자의 프로필을 조회합니다."""
         return super().retrieve(request, *args, **kwargs)
+
+    @swagger_auto_schema(
+        operation_summary="사용자 프로필 수정",
+        request_body=UserProfileSerializer,
+        responses={
+            200: UserProfileSerializer,
+            400: "잘못된 요청",
+            401: "인증 실패",
+            403: "권한 없음",
+        },
+    )
+    def partial_update(self, request, *args, **kwargs):
+        """현재 로그인한 사용자의 프로필을 수정합니다."""
+        return super().partial_update(request, *args, **kwargs)
