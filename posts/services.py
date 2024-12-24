@@ -4,7 +4,6 @@ from django.db import transaction
 from django.db.models import F, Prefetch, Q, QuerySet
 from django.shortcuts import get_object_or_404
 from rest_framework.exceptions import PermissionDenied, ValidationError
-
 from posts.models import Post, PostImage, PostLike
 
 
@@ -22,7 +21,9 @@ class PostService:
 
         # 기본 쿼리셋 구성
         queryset = (
-            Post.objects.select_related("user").prefetch_related("images").filter(is_deleted=False)
+            Post.objects.select_related("user")
+            .prefetch_related("images")
+            .filter(is_deleted=False)
         )
         # 카테고리 limit 설정
         if limit not in [5, 10]:
@@ -39,7 +40,8 @@ class PostService:
 
         if search_keyword:
             queryset = queryset.filter(
-                Q(title__icontains=search_keyword) | Q(content__icontains=search_keyword)
+                Q(title__icontains=search_keyword)
+                | Q(content__icontains=search_keyword)
             )
 
         # 커서 기반 페이지네이션
@@ -93,7 +95,9 @@ class PostService:
         )
 
         if user_id:
-            likes_prefetch = Prefetch("likes", queryset=PostLike.objects.filter(user_id=user_id))
+            likes_prefetch = Prefetch(
+                "likes", queryset=PostLike.objects.filter(user_id=user_id)
+            )
             queryset = queryset.prefetch_related(likes_prefetch)
 
         post = get_object_or_404(queryset, id=post_id, is_deleted=False)
@@ -105,7 +109,9 @@ class PostService:
 
     @staticmethod
     @transaction.atomic
-    def create_post(user_id: int, data: Dict[str, Any], images: Optional[List[Any]] = None) -> Post:
+    def create_post(
+        user_id: int, data: Dict[str, Any], images: Optional[List[Any]] = None
+    ) -> Post:
         post = Post.objects.create(
             user_id=user_id,
             title=data["title"],
@@ -170,7 +176,9 @@ class PostService:
     @staticmethod
     @transaction.atomic
     def toggle_like(post_id: int, user_id: int) -> bool:
-        post = get_object_or_404(Post.objects.select_for_update(), id=post_id, is_deleted=False)
+        post = get_object_or_404(
+            Post.objects.select_for_update(), id=post_id, is_deleted=False
+        )
 
         like, created = PostLike.objects.get_or_create(
             post_id=post_id,
