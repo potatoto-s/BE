@@ -50,3 +50,15 @@ class UserViewSet(GenericViewSet, RetrieveModelMixin, UpdateModelMixin, DestroyM
     def partial_update(self, request, *args, **kwargs):
         """현재 로그인한 사용자의 프로필을 수정합니다."""
         return super().partial_update(request, *args, **kwargs)
+
+    @swagger_auto_schema(
+        operation_summary="회원 탈퇴",
+        responses={
+            204: "탈퇴 성공",
+            401: "인증 실패",
+            403: "권한 없음"
+        }
+    )
+    def destroy(self, request, *args, **kwargs):
+        """회원 탈퇴를 진행합니다."""
+        return super().destroy(request, *args, **kwargs)
