@@ -1,8 +1,9 @@
-from typing import Any, Optional
+from typing import Any, Optional, Type
 
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.core.validators import RegexValidator
 from django.db import models
+from django.utils import timezone
 
 
 class UserManager(BaseUserManager["User"]):
@@ -22,7 +23,7 @@ class UserManager(BaseUserManager["User"]):
     ) -> "User":
         extra_fields.setdefault("is_staff", True)
         extra_fields.setdefault("is_superuser", True)
-        extra_fields.setdefault("role", "COMPANY")
+        extra_fields.setdefault("role", "WORKSHOP")  # WORKSHOP으로 수정
         return self.create_user(email, password, **extra_fields)
 
 
@@ -32,9 +33,9 @@ class User(AbstractUser):
         WORKSHOP = "WORKSHOP", "공방"
 
     # AbstractUser의 기본 필드 중 사용하지 않을 필드 무효화
-    username = None  # type: ignore[assignment]
-    first_name = None  # type: ignore[assignment]
-    last_name = None  # type: ignore[assignment]
+    username: None = None  # type: ignore
+    first_name: None = None  # type: ignore
+    last_name: None = None  # type: ignore
 
     # 기존 필드 재정의 및 새로운 필드 추가
     email = models.EmailField(
@@ -85,8 +86,10 @@ class User(AbstractUser):
         null=True,
         help_text="공방 회원의 경우 필수 입력사항입니다.",
     )
+    created_at = models.DateTimeField("가입일", default=timezone.now, editable=False)
+    updated_at = models.DateTimeField("정보 수정일", auto_now=True)
 
-    objects = UserManager()  # type: ignore[assignment]
+    objects = UserManager()  # type: ignore
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["name", "nickname", "phone", "role"]
