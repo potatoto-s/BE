@@ -4,11 +4,14 @@ from typing import Any
 from rest_framework import authentication
 from rest_framework.exceptions import AuthenticationFailed, NotAuthenticated
 from rest_framework.permissions import BasePermission
+from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.request import Request
 from rest_framework.views import APIView
 
 
 class IsAuthenticatedWithUnauthorized(BasePermission):
+    authentication_classes = [JWTAuthentication]
+
     # 사용자 인증 여부를 확인하는 커스텀 권한
 
     # - 인증되지 않은 사용자: 401 Unauthorized 반환

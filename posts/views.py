@@ -4,6 +4,7 @@ from django.db import transaction
 from drf_spectacular.utils import OpenApiParameter, extend_schema
 from PIL import Image
 from rest_framework import status
+from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.request import Request
@@ -24,7 +25,8 @@ from posts.services import PostService
 
 # 게시글 목록 조회
 class PostListView(APIView):
-    serializer_class = PostListSerializer
+    serializer_class = PostLikeResponseSerializer
+    authentication_classes = [JWTAuthentication]
 
     @extend_schema(
         parameters=[

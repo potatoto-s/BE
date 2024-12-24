@@ -3,6 +3,7 @@ from typing import Any
 from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework import authentication, status
+from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
@@ -17,8 +18,8 @@ from posts.models import Post
 
 
 class CommentListView(APIView):
-    serializer_class = CommentSerializer
-
+    authentication_classes = [JWTAuthentication]  # TokenAuthentication에서 변경
+    permission_classes = [IsAuthenticatedWithUnauthorized]
     # 댓글 목록 조회
     MIN_PAGE_SIZE: int = 1
     DEFAULT_PAGE_SIZE: int = 10
@@ -84,7 +85,7 @@ class CommentListView(APIView):
 
 class CommentCreateView(APIView):
     serializer_class = CommentCreateSerializer
-    authentication_classes = [authentication.TokenAuthentication]  # 토큰 인증 사용
+    authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticatedWithUnauthorized]
 
     @extend_schema(request=CommentCreateSerializer, responses={201: CommentSerializer})
@@ -112,7 +113,7 @@ class CommentCreateView(APIView):
 
 class CommentUpdateView(APIView):
     serializer_class = CommentUpdateSerializer
-    permission_classes = [IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
 
     @extend_schema(request=CommentUpdateSerializer, responses={200: CommentSerializer})
     # 댓글 수정
@@ -136,6 +137,7 @@ class CommentUpdateView(APIView):
 
 class CommentDeleteView(APIView):
     serializer_class = CommentSerializer
+    authentication_classes = [JWTAuthentication]
 
     @extend_schema(responses={204: None})
     # 댓글 삭제
