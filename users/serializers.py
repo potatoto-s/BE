@@ -98,3 +98,21 @@ class UserProfileSerializer(serializers.ModelSerializer):
                 )
 
         return attrs
+
+
+class CheckEmailSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+    def validate_email(self, value):
+        if User.objects.filter(email=value).exists():
+            raise serializers.ValidationError("이미 사용중인 이메일입니다.")
+        return value
+
+
+class CheckNicknameSerializer(serializers.Serializer):
+    nickname = serializers.CharField()
+
+    def validate_nickname(self, value):
+        if User.objects.filter(nickname=value).exists():
+            raise serializers.ValidationError("이미 사용중인 닉네임입니다.")
+        return value
