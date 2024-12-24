@@ -99,9 +99,7 @@ class CommentService:
         if comment.user_id != user_id:
             raise ValidationError("자신의 댓글만 삭제할 수 있습니다.")
 
-        Post.objects.filter(id=comment.post_id).update(
-            comment_count=F("comment_count") - 1
-        )
+        Post.objects.filter(id=comment.post_id).update(comment_count=F("comment_count") - 1)
 
         # 커스텀 delete 메서드 호출
         comment.delete()

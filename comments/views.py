@@ -6,11 +6,7 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from comments.serializers import (
-    CommentCreateSerializer,
-    CommentSerializer,
-    CommentUpdateSerializer,
-)
+from comments.serializers import CommentCreateSerializer, CommentSerializer, CommentUpdateSerializer
 from comments.services import CommentService
 
 
@@ -27,14 +23,10 @@ class CommentListView(APIView):
             limit = int(limit) if limit else self.DEFAULT_PAGE_SIZE
 
             if page < self.MIN_PAGE_SIZE:
-                raise ValidationError(
-                    f"Page number must be at least {self.MIN_PAGE_SIZE}."
-                )
+                raise ValidationError(f"Page number must be at least {self.MIN_PAGE_SIZE}.")
 
             if limit < self.MIN_PAGE_SIZE:
-                raise ValidationError(
-                    f"Page size must be at least {self.MIN_PAGE_SIZE}."
-                )
+                raise ValidationError(f"Page size must be at least {self.MIN_PAGE_SIZE}.")
             if limit > self.MAX_PAGE_SIZE:
                 raise ValidationError(f"Page size cannot exceed {self.MAX_PAGE_SIZE}.")
 
@@ -58,9 +50,7 @@ class CommentListView(APIView):
             limit=limit,
         )
 
-        serializer = CommentSerializer(
-            comments, many=True, context={"request": request}
-        )
+        serializer = CommentSerializer(comments, many=True, context={"request": request})
 
         return Response(
             {
