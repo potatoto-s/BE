@@ -72,3 +72,15 @@ class SignUpView(generics.CreateAPIView):
     def post(self, request, *args, **kwargs):
         """새로운 사용자를 생성합니다."""
         return super().post(request, *args, **kwargs)
+
+
+class CustomTokenObtainPairView(TokenObtainPairView):
+    serializer_class = CustomTokenObtainPairSerializer
+
+    @swagger_auto_schema(
+        operation_summary="로그인",
+        responses={200: CustomTokenObtainPairSerializer, 401: "인증 실패"},
+    )
+    def post(self, request, *args, **kwargs):
+        """이메일과 비밀번호로 로그인하여 토큰을 발급받습니다."""
+        return super().post(request, *args, **kwargs)
