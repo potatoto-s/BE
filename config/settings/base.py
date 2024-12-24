@@ -48,6 +48,8 @@ INSTALLED_APPS = [
     "drf_spectacular",
     # Local Apps
     "users.apps.UsersConfig",
+    "posts",
+    "comments",
 ]
 
 AUTH_USER_MODEL = "users.User"
