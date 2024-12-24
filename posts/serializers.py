@@ -33,9 +33,7 @@ class PostCreateSerializer(BaseSerializer):
     title = serializers.CharField(max_length=255)
     content = serializers.CharField()
     category = serializers.ChoiceField(choices=Post.Category.choices)
-    images = serializers.ListField(
-        child=serializers.ImageField(), required=False, write_only=True
-    )
+    images = serializers.ListField(child=serializers.ImageField(), required=False, write_only=True)
 
     def validate(self, attrs: Dict[str, Any]) -> Dict[str, Any]:
         user = self.context["request"].user
@@ -133,10 +131,7 @@ class PostUpdateSerializer(BaseSerializer):
     def validate(self, attrs: Dict[str, Any]) -> Dict[str, Any]:
         # 수정 권한 검증
         # self.instance가 None이 아닌지 확인
-        if (
-            self.instance is not None
-            and self.instance.user != self.context["request"].user
-        ):
+        if self.instance is not None and self.instance.user != self.context["request"].user:
             raise ValidationError("자신의 게시글만 수정할 수 있습니다.")
         return attrs
 

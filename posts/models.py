@@ -29,9 +29,7 @@ class Post(models.Model):
         FLOWER = "FLOWER", "플라워"
         TOTAL = "TOTAL", "토탈공예"
 
-    user = models.ForeignKey(
-        "auth.User", on_delete=models.CASCADE, related_name="posts"
-    )
+    user = models.ForeignKey("auth.User", on_delete=models.CASCADE, related_name="posts")
     title = models.CharField(max_length=255, help_text="게시글 제목")
     content = models.TextField(help_text="게시글 본문")
     category = models.CharField(
@@ -46,9 +44,7 @@ class Post(models.Model):
         default=Status.ACTIVE,
         help_text="게시글 상태",
     )
-    is_deleted = models.BooleanField(
-        default=False, help_text="삭제 여부 (True인 경우 삭제)"
-    )
+    is_deleted = models.BooleanField(default=False, help_text="삭제 여부 (True인 경우 삭제)")
     created_at = models.DateTimeField(auto_now_add=True, help_text="작성일시")
     updated_at = models.DateTimeField(auto_now=True, help_text="수정일시")
 
@@ -84,9 +80,7 @@ class PostImage(models.Model):
     # 게시글 삭제 시 이미지 삭제
 
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="images")
-    image_url = models.URLField(
-        max_length=2000, help_text="이미지 URL (유효한 URL 형식)"
-    )
+    image_url = models.URLField(max_length=2000, help_text="이미지 URL (유효한 URL 형식)")
     created_at = models.DateTimeField(auto_now_add=True, help_text="업로드 일시")
 
     class Meta:
@@ -98,9 +92,7 @@ class PostLike(models.Model):
     # 게시글 삭제 시 좋아요 삭제
 
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="likes")
-    user = models.ForeignKey(
-        "auth.User", on_delete=models.CASCADE, related_name="post_likes"
-    )
+    user = models.ForeignKey("auth.User", on_delete=models.CASCADE, related_name="post_likes")
     created_at = models.DateTimeField(auto_now_add=True, help_text="좋아요 생성 일시")
 
     class Meta:

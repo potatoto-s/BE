@@ -37,9 +37,7 @@ class Comment(models.Model):
         default=Status.ACTIVE,
         help_text="댓글 상태",
     )
-    is_deleted = models.BooleanField(
-        default=False, help_text="삭제 여부 (True인 경우 삭제)"
-    )
+    is_deleted = models.BooleanField(default=False, help_text="삭제 여부 (True인 경우 삭제)")
     created_at = models.DateTimeField(auto_now_add=True, help_text="작성일시")
     updated_at = models.DateTimeField(auto_now=True, help_text="수정일시")
 
