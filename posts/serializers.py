@@ -4,6 +4,8 @@ from django.contrib.auth import get_user_model
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
+from comments.serializers import CommentResponseSerializer
+
 # from rest_framework.exceptions import ValidationError
 from posts.models import Post, PostImage, PostLike
 
@@ -92,6 +94,7 @@ class PostDetailSerializer(BaseSerializer):
     author = serializers.SerializerMethodField()
     images = PostImageSerializer(many=True, read_only=True)
     is_liked = serializers.SerializerMethodField()
+    comments = CommentResponseSerializer(many=True, read_only=True)
     created_at = serializers.DateTimeField(read_only=True)
     updated_at = serializers.DateTimeField(read_only=True)
 
