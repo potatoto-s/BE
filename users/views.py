@@ -58,3 +58,17 @@ class UserViewSet(GenericViewSet, RetrieveModelMixin, UpdateModelMixin, DestroyM
     def destroy(self, request, *args, **kwargs):
         """회원 탈퇴를 진행합니다."""
         return super().destroy(request, *args, **kwargs)
+
+
+class SignUpView(generics.CreateAPIView):
+    serializer_class = UserSignUpSerializer
+    permission_classes = [AllowAny]
+
+    @swagger_auto_schema(
+        operation_summary="회원가입",
+        request_body=UserSignUpSerializer,
+        responses={201: UserSignUpSerializer, 400: "잘못된 요청"},
+    )
+    def post(self, request, *args, **kwargs):
+        """새로운 사용자를 생성합니다."""
+        return super().post(request, *args, **kwargs)
