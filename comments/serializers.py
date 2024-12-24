@@ -9,6 +9,12 @@ from comments.models import Comment
 User = get_user_model()
 
 
+class CommentSerializer(serializers.ModelSerializer[Any]):
+    class Meta:
+        model = Comment
+        fields = "__all__"
+
+
 class BaseSerializer(serializers.Serializer[Any]):
     class Meta:
         abstract = True
@@ -45,7 +51,7 @@ class CommentCreateSerializer(BaseSerializer):
         return comment
 
 
-class CommentSerializer(BaseSerializer):
+class CommentResponseSerializer(BaseSerializer):
     # 댓글 시리얼라이저
     # 작성자 정보 포함 (기업명 표시 / 공방명 표시)
     id = serializers.IntegerField(read_only=True)

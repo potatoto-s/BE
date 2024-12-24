@@ -1,16 +1,24 @@
 from typing import Any
 
-from rest_framework import status
+from django.shortcuts import get_object_or_404
+from drf_spectacular.utils import OpenApiParameter, extend_schema
+from rest_framework import authentication, status
 from rest_framework.exceptions import ValidationError
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from comments.models import Comment
+from comments.permissions import IsAuthenticatedWithUnauthorized
 from comments.serializers import CommentCreateSerializer, CommentSerializer, CommentUpdateSerializer
 from comments.services import CommentService
+from posts.models import Post
 
 
 class CommentListView(APIView):
+    serializer_class = CommentSerializer
+
     # 댓글 목록 조회
     MIN_PAGE_SIZE: int = 1
     DEFAULT_PAGE_SIZE: int = 10
@@ -35,6 +43,13 @@ class CommentListView(APIView):
         except ValueError:
             raise ValidationError("Invalid pagination parameters: must be numbers")
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name="page", type=int, description="Page number"),
+            OpenApiParameter(name="limit", type=int, description="Items per page"),
+        ],
+        responses={200: CommentSerializer(many=True)},
+    )
     def get(self, request: Request, post_id: int) -> Response:
         # 게시글 목록 조회
         page, limit = self.validate_pagination_params(
@@ -68,12 +83,21 @@ class CommentListView(APIView):
 
 
 class CommentCreateView(APIView):
+    serializer_class = CommentCreateSerializer
+    authentication_classes = [authentication.TokenAuthentication]  # 토큰 인증 사용
+    permission_classes = [IsAuthenticatedWithUnauthorized]
+
+    @extend_schema(request=CommentCreateSerializer, responses={201: CommentSerializer})
     # 댓글 작성
     def post(self, request: Request, post_id: int) -> Response:
-        serializer = CommentCreateSerializer(data=request.data)
+        # post 존재 여부 확인
+        post = get_object_or_404(Post, id=post_id, is_deleted=False)
+
+        serializer = CommentCreateSerializer(
+            data=request.data, context={"request": request, "post": post}
+        )
         serializer.is_valid(raise_exception=True)
 
-        # 댓글 생성
         comment = CommentService.create_comment(
             post_id=post_id,
             user_id=request.user.id,
@@ -81,31 +105,40 @@ class CommentCreateView(APIView):
         )
 
         return Response(
-            CommentSerializer(comment).data,
+            CommentSerializer(comment, context={"request": request}).data,
             status=status.HTTP_201_CREATED,
         )
 
 
 class CommentUpdateView(APIView):
-    # 댓글 수정
+    serializer_class = CommentUpdateSerializer
+    permission_classes = [IsAuthenticated]
 
+    @extend_schema(request=CommentUpdateSerializer, responses={200: CommentSerializer})
+    # 댓글 수정
     def patch(self, request: Request, comment_id: int) -> Response:
-        serializer = CommentUpdateSerializer(data=request.data)
+        comment = get_object_or_404(Comment, id=comment_id, is_deleted=False)
+
+        serializer = CommentUpdateSerializer(
+            comment, data=request.data, context={"request": request}  # instance 추가
+        )
         serializer.is_valid(raise_exception=True)
 
         # 댓글 수정
-        comment = CommentService.update_comment(
+        updated_comment = CommentService.update_comment(
             comment_id=comment_id,
             user_id=request.user.id,
             data=serializer.validated_data,
         )
 
-        return Response(CommentSerializer(comment).data)
+        return Response(CommentSerializer(updated_comment, context={"request": request}).data)
 
 
 class CommentDeleteView(APIView):
-    # 댓글 삭제
+    serializer_class = CommentSerializer
 
+    @extend_schema(responses={204: None})
+    # 댓글 삭제
     def delete(self, request: Request, comment_id: int) -> Response:
         CommentService.delete_comment(
             comment_id=comment_id,

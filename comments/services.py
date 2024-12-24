@@ -1,9 +1,9 @@
 from typing import Any, Dict, List, Tuple
 
-from django.db import transaction
+from django.db import models, transaction
 from django.db.models import F
 from django.shortcuts import get_object_or_404
-from rest_framework.exceptions import ValidationError
+from rest_framework.exceptions import PermissionDenied, ValidationError
 
 from comments.models import Comment
 from posts.models import Post
@@ -91,17 +91,18 @@ class CommentService:
     @staticmethod
     @transaction.atomic
     def delete_comment(comment_id: int, user_id: int) -> None:
-        # select_for_update로 동시성 제어
         comment = get_object_or_404(
-            Comment.objects.select_for_update(), id=comment_id, is_delete=False
+            Comment.objects.select_for_update(), id=comment_id, is_deleted=False
         )
-
         if comment.user_id != user_id:
-            raise ValidationError("자신의 댓글만 삭제할 수 있습니다.")
+            raise PermissionDenied("자신의 댓글만 삭제할 수 있습니다.")
 
-        Post.objects.filter(id=comment.post_id).update(comment_count=F("comment_count") - 1)
-
-        # 커스텀 delete 메서드 호출
+        # 게시글의 댓글 수 감소. 음수가 되지 않도록 처리
+        Post.objects.filter(id=comment.post_id).update(
+            comment_count=models.Case(
+                models.When(comment_count__gt=0, then=F("comment_count") - 1), default=0
+            )
+        )
         comment.delete()
 
     @classmethod
