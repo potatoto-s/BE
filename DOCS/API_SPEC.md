@@ -92,7 +92,7 @@
 ### 2.1 프로필 조회
 **Endpoint**: `GET /api/profile/`
 
-**Headers**: 
+**Headers**:
 ```
 Authorization: Bearer {access_token}
 ```
@@ -116,7 +116,7 @@ Authorization: Bearer {access_token}
 ### 2.2 프로필 수정
 **Endpoint**: `PATCH /api/profile/`
 
-**Headers**: 
+**Headers**:
 ```
 Authorization: Bearer {access_token}
 ```
@@ -194,7 +194,7 @@ Authorization: Bearer {access_token}
 ### 2.4 회원 탈퇴
 **Endpoint**: `DELETE /api/profile/`
 
-**Headers**: 
+**Headers**:
 ```
 Authorization: Bearer {access_token}
 ```
