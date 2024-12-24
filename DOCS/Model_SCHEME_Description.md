@@ -9,8 +9,7 @@
   - `name`: 이름
   - `phone`: 전화번호
   - `password`: 비밀번호 (암호화 저장)
-  - `role`: 회원 구분 ('COMPANY' / 'WORKSHOP' / 'GUEST')
-  - `status`: 계정 상태 ('ACTIVE' / 'SUSPENDED' / 'DELETED')
+  - `role`: 회원 구분 ('COMPANY' / 'WORKSHOP')
 
 ### 역할별 추가 정보
 - 기업 회원(`role`='COMPANY')
@@ -26,13 +25,12 @@
 ## 2. Posts 테이블 (게시글 관리)
 
 ### 요구사항 연관성
-- 공방 사장님만 작성 가능 → `user_id`로 작성자 정보 연결 및 CHECK 제약조건 추가
+- 공방 사장님만 작성 가능 → `user_id`로 작성자 정보 연결
 - 게시글 기본 정보 저장
   - `title`: 게시글 제목
   - `content`: 본문 내용
   - `category`: 게시글 카테고리 (예: 사업개발)
   - `view_count`: 조회수 기록
-  - `status`: 게시글 상태 ('ACTIVE' / 'HIDDEN' / 'DELETED')
 
 ### 데이터 관리
 - `created_at`: 작성일시 기록
@@ -53,12 +51,11 @@
 ## 4. Comments 테이블 (댓글 기능)
 
 ### 요구사항 연관성
-- 회원(기업/공방)만 작성 가능 → `user_id`로 작성자 정보 연결 및 CHECK 제약조건 추가
+- 회원(기업/공방)만 작성 가능 → `user_id`로 작성자 정보 연결
 - 기업 회원의 경우 기업명 표시 → Users 테이블의 company_name 참조
 - 댓글 정보 저장
   - `content`: 댓글 내용
   - `post_id`: 연결된 게시글 ID (외래키)
-  - `status`: 댓글 상태 ('ACTIVE' / 'HIDDEN' / 'DELETED')
 
 ### 데이터 관리
 - `created_at`: 작성일시 기록
@@ -99,7 +96,7 @@
 
 1. 사용자 식별자
    - `email`, `nickname` UNIQUE 제약조건
-   - `role` CHECK 제약조건 ('COMPANY', 'WORKSHOP', 'GUEST')
+   - `role` CHECK 제약조건 ('COMPANY', 'WORKSHOP')
 
 2. 필수 입력 필드
    - `NOT NULL` 제약조건 적용
