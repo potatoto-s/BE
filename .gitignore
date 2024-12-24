@@ -266,3 +266,10 @@ pyrightconfig.json
 # End of https://www.toptal.com/developers/gitignore/api/python,django
 .idea/
 !*/migrations/*.py
+
+# Django migrations 폴더를 무시
+**/migrations/
+
+# 특정 마이그레이션 파일 무시
+**/migrations/*.py
+**/migrations/*.pyc
