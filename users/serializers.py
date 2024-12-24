@@ -54,3 +54,23 @@ class UserSignUpSerializer(serializers.ModelSerializer):
         validated_data.pop("password2")
         user = User.objects.create_user(**validated_data)
         return user
+
+
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    def validate(self, attrs):
+        # 기본 검증 및 토큰 생성
+        data = super().validate(attrs)
+
+        # 응답에 사용자 정보 추가
+        user = self.user
+        data["user"] = {
+            "email": user.email,
+            "name": user.name,
+            "nickname": user.nickname,
+            "phone": user.phone,
+            "role": user.role,
+            "company_name": user.company_name,
+            "workshop_name": user.workshop_name,
+        }
+
+        return data
