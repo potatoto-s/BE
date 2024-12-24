@@ -74,3 +74,27 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         }
 
         return data
+
+
+class UserProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ("email", "name", "nickname", "phone", "role", "company_name", "workshop_name")
+        read_only_fields = ("email", "role")  # 이메일과 역할은 수정 불가
+        extra_kwargs = {"company_name": {"required": False}, "workshop_name": {"required": False}}
+
+    def validate(self, attrs):
+        # role에 따른 필드 검증
+        user = self.context["request"].user
+        if user.role == User.Role.COMPANY:
+            if attrs.get("workshop_name"):
+                raise serializers.ValidationError(
+                    {"workshop_name": "기업 회원은 공방명을 설정할 수 없습니다."}
+                )
+        elif user.role == User.Role.WORKSHOP:
+            if attrs.get("company_name"):
+                raise serializers.ValidationError(
+                    {"company_name": "공방 회원은 기업명을 설정할 수 없습니다."}
+                )
+
+        return attrs
