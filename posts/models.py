@@ -1,5 +1,7 @@
 from django.db import models
 
+from users.models import User
+
 
 class Post(models.Model):
     # 공방 사장만 작성 가능
@@ -29,7 +31,7 @@ class Post(models.Model):
         FLOWER = "FLOWER", "플라워"
         TOTAL = "TOTAL", "토탈공예"
 
-    user = models.ForeignKey("auth.User", on_delete=models.CASCADE, related_name="posts")
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="posts")
     title = models.CharField(max_length=255, help_text="게시글 제목")
     content = models.TextField(help_text="게시글 본문")
     category = models.CharField(
@@ -92,7 +94,7 @@ class PostLike(models.Model):
     # 게시글 삭제 시 좋아요 삭제
 
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="likes")
-    user = models.ForeignKey("auth.User", on_delete=models.CASCADE, related_name="post_likes")
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="post_likes")
     created_at = models.DateTimeField(auto_now_add=True, help_text="좋아요 생성 일시")
 
     class Meta:

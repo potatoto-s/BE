@@ -21,16 +21,6 @@ from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, Spec
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    # API URLs
-    path(
-        "api/",
-        include(
-            [
-                path("posts/", include("posts.urls")),  # 게시글 관련 URLS
-                path("comments/", include("comments.urls")),  # 댓글 관련 URLS
-            ]
-        ),
-    ),
     # API
     path("api/", include("users.urls")),
     # API URLs

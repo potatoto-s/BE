@@ -1,5 +1,7 @@
 from django.db import models
 
+from users.models import User
+
 
 class Comment(models.Model):
     # 회원(기업/공방)만 작성 가능
@@ -25,7 +27,7 @@ class Comment(models.Model):
     )
     # User 모델 구현 후 수정
     user = models.ForeignKey(
-        "auth.User",
+        User,
         on_delete=models.CASCADE,
         related_name="comments",
         help_text="댓글 작성자",
