@@ -53,11 +53,7 @@ class UserViewSet(GenericViewSet, RetrieveModelMixin, UpdateModelMixin, DestroyM
 
     @swagger_auto_schema(
         operation_summary="회원 탈퇴",
-        responses={
-            204: "탈퇴 성공",
-            401: "인증 실패",
-            403: "권한 없음"
-        }
+        responses={204: "탈퇴 성공", 401: "인증 실패", 403: "권한 없음"},
     )
     def destroy(self, request, *args, **kwargs):
         """회원 탈퇴를 진행합니다."""
