@@ -1,289 +1,209 @@
 # API 명세서
 
 ## 1. 인증 관련 API
-## API 명세서
 
-## 회원가입 (POST /api/users/signup/)
+### 1.1 회원가입
+**Endpoint**: `POST /api/signup/`
 
-**Request Body**
+**Request Body**:
 ```json
 {
-  "email": "string (필수)",
-  "password": "string (필수)",
-  "confirm_password": "string (필수)",
-  "nickname": "string (필수, 2~10자)",
-  "district": "string (필수)",
-  "neighborhood": "string (필수)",
-  "role": "string (필수, 'company' 또는 'workshop')",
-  "company_name": "string (role이 'company'일 때 필수)",
-  "workshop_name": "string (role이 'workshop'일 때 필수)"
-}
-```
-
-**Response (201 Created)**
-```json
-{
-  "message": "회원가입이 완료되었습니다. 이메일로 발송된 인증 코드를 입력해주세요.",
-  "user_id": "integer"
-}
-```
-
-## 이메일 인증 (POST /api/users/email-verification/)
-
-**Request Body**
-```json
-{
-  "user_id": "integer (필수)",
-  "code": "string (필수, 6자리)"
-}
-```
-
-**Response (200 OK)**
-```json
-{
-  "message": "이메일이 성공적으로 인증되었습니다."
-}
-```
-
-## 로그인 (POST /api/users/login/)
-
-**Request Body**
-```json
-{
-  "email": "string (필수)",
-  "password": "string (필수)"
-}
-```
-
-**Response (200 OK)**
-```json
-{
-  "access": "string",
-  "refresh": "string",
-  "user": {
     "email": "string",
+    "password": "string",
+    "password2": "string",
+    "name": "string",
     "nickname": "string",
-    "profilePhoto": "string",
-    "district": "string",
-    "neighborhood": "string",
-    "bio": "string",
+    "phone": "string",
+    "role": "COMPANY | WORKSHOP",
+    "company_name": "string (optional)",
+    "workshop_name": "string (optional)"
+}
+```
+
+**Response (201)**:
+```json
+{
+    "email": "string",
+    "name": "string",
+    "nickname": "string",
+    "phone": "string",
     "role": "string",
     "company_name": "string",
     "workshop_name": "string"
-  }
 }
 ```
 
-## 로그아웃 (POST /api/users/logout/)
+**Error Responses**:
+- 400: 잘못된 요청 (유효성 검증 실패)
 
-**Request Body**
+### 1.2 로그인
+**Endpoint**: `POST /api/login/`
+
+**Request Body**:
 ```json
 {
-  "refresh_token": "string (필수)"
+    "email": "string",
+    "password": "string"
 }
 ```
 
-**Response (200 OK)**
+**Response (200)**:
 ```json
 {
-  "message": "로그아웃되었습니다."
+    "access": "string",
+    "refresh": "string",
+    "user": {
+        "email": "string",
+        "name": "string",
+        "nickname": "string",
+        "phone": "string",
+        "role": "string",
+        "company_name": "string",
+        "workshop_name": "string"
+    }
 }
 ```
 
-## 사용자 정보 조회 (GET /api/users/user/)
+**Error Responses**:
+- 401: 인증 실패
 
-**Response (200 OK)**
+### 1.3 토큰 재발급
+**Endpoint**: `POST /api/token/refresh/`
+
+**Request Body**:
 ```json
 {
-  "email": "string",
-  "nickname": "string",
-  "profilePhoto": "string",
-  "district": "string",
-  "neighborhood": "string",
-  "bio": "string",
-  "role": "string",
-  "company_name": "string",
-  "workshop_name": "string"
+    "refresh": "string"
 }
 ```
 
-## 사용자 정보 수정 (PATCH /api/users/user/)
-
-**Request Body**
+**Response (200)**:
 ```json
 {
-  "nickname": "string (선택)",
-  "profilePhoto": "file (선택)",
-  "district": "string (선택)",
-  "neighborhood": "string (선택)",
-  "bio": "string (선택)",
-  "company_name": "string (선택)",
-  "workshop_name": "string (선택)"
+    "access": "string"
 }
 ```
 
-**Response (200 OK)**
-```json
-{
-  "email": "string",
-  "nickname": "string",
-  "profilePhoto": "string",
-  "district": "string",
-  "neighborhood": "string",
-  "bio": "string",
-  "role": "string",
-  "company_name": "string",
-  "workshop_name": "string"
-}
-```
-
-## 회원 탈퇴 (DELETE /api/users/user/delete/)
-
-**Response (204 No Content)**
-
-## 비밀번호 변경 (POST /api/users/password-change/)
-
-**Request Body**
-```json
-{
-  "current_password": "string (필수)",
-  "new_password": "string (필수)",
-  "new_password_confirm": "string (필수)"
-}
-```
-
-**Response (200 OK)**
-```json
-{
-  "message": "비밀번호가 성공적으로 변경되었습니다."
-}
-```
-
-## 비밀번호 재설정 (POST /api/users/password-reset/)
-
-**Request Body**
-```json
-{
-  "email": "string (필수)"
-}
-```
-
-**Response (200 OK)**
-```json
-{
-  "message": "임시 비밀번호가 이메일로 발송되었습니다."
-}
-```
-
-## 이메일 중복 확인 (POST /api/users/email-check/)
-
-**Request Body**
-```json
-{
-  "email": "string (필수)"
-}
-```
-
-**Response (200 OK)**
-```json
-{
-  "available": "boolean"
-}
-```
-
-## 닉네임 중복 확인 (POST /api/users/nickname-check/)
-
-**Request Body**
-```json
-{
-  "nickname": "string (필수)"
-}
-```
-
-**Response (200 OK)**
-```json
-{
-  "available": "boolean"
-}
-```
-
-## 공통 에러 응답
-
-**400 Bad Request**
-```json
-{
-  "error": "string"
-}
-```
-
-**401 Unauthorized**
-```json
-{
-  "detail": "Authentication credentials were not provided."
-}
-```
-
-**403 Forbidden**
-```json
-{
-  "detail": "You do not have permission to perform this action."
-}
-```
-
-**404 Not Found**
-```json
-{
-  "error": "string"
-}
-```
+**Error Responses**:
+- 401: 유효하지 않은 리프레시 토큰
 
 ## 2. 사용자 관련 API
 
 ### 2.1 프로필 조회
-- **Endpoint**: `GET /api/users/profile`
-- **Headers**: Authorization: Bearer {token}
-- **Response (200)**:
+**Endpoint**: `GET /api/profile/`
+
+**Headers**:
+```
+Authorization: Bearer {access_token}
+```
+
+**Response (200)**:
 ```json
 {
-    "status": "success",
-    "data": {
-        "id": "number",
-        "email": "string",
-        "nickname": "string",
-        "name": "string",
-        "phone": "string",
-        "role": "string",
-        "companyName": "string?",
-        "workshopName": "string?"
-    }
+    "email": "string",
+    "name": "string",
+    "nickname": "string",
+    "phone": "string",
+    "role": "string",
+    "company_name": "string",
+    "workshop_name": "string"
 }
 ```
 
+**Error Responses**:
+- 401: 인증되지 않은 요청
+
 ### 2.2 프로필 수정
-- **Endpoint**: `PATCH /api/users/profile`
-- **Headers**: Authorization: Bearer {token}
-- **Request Body**:
+**Endpoint**: `PATCH /api/profile/`
+
+**Headers**:
+```
+Authorization: Bearer {access_token}
+```
+
+**Request Body**:
 ```json
 {
-    "nickname": "string?",
-    "name": "string?",
-    "phone": "string?",
-    "companyName": "string?",
-    "workshopName": "string?"
+    "name": "string (optional)",
+    "nickname": "string (optional)",
+    "phone": "string (optional)",
+    "company_name": "string (optional)",
+    "workshop_name": "string (optional)"
 }
 ```
-- **Response (200)**:
+
+**Response (200)**:
 ```json
 {
-    "status": "success",
-    "data": {
-        "id": "number",
-        "nickname": "string",
-        "name": "string",
-        "phone": "string"
-    }
+    "email": "string",
+    "name": "string",
+    "nickname": "string",
+    "phone": "string",
+    "role": "string",
+    "company_name": "string",
+    "workshop_name": "string"
 }
 ```
+
+**Error Responses**:
+- 400: 잘못된 요청 (유효성 검증 실패)
+- 401: 인증되지 않은 요청
+
+### 2.3 중복 확인 API
+
+#### 2.3.1 이메일 중복 확인
+**Endpoint**: `POST /api/check/email/`
+
+**Request Body**:
+```json
+{
+    "email": "string"
+}
+```
+
+**Response (200)**:
+```json
+{
+    "message": "사용 가능한 이메일입니다."
+}
+```
+
+**Error Responses**:
+- 400: 중복된 이메일
+
+#### 2.3.2 닉네임 중복 확인
+**Endpoint**: `POST /api/check/nickname/`
+
+**Request Body**:
+```json
+{
+    "nickname": "string"
+}
+```
+
+**Response (200)**:
+```json
+{
+    "message": "사용 가능한 닉네임입니다."
+}
+```
+
+**Error Responses**:
+- 400: 중복된 닉네임
+
+### 2.4 회원 탈퇴
+**Endpoint**: `DELETE /api/profile/`
+
+**Headers**:
+```
+Authorization: Bearer {access_token}
+```
+
+**Response (204)**:
+No content
+
+**Error Responses**:
+- 401: 인증되지 않은 요청
 
 ## 3. 게시글 관련 API
 
