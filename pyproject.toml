@@ -14,6 +14,7 @@ django-stubs = "^5.1.1"
 environ = "^1.0"
 django-environ = "^0.11.2"
 djangorestframework-simplejwt = "^5.3.1"
+python-decouple = "^3.8"
 
 [tool.django-stubs]
 django_settings_module = "config.settings.base"
