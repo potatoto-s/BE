@@ -4,12 +4,12 @@ from django.db import transaction
 from drf_spectacular.utils import OpenApiParameter, extend_schema
 from PIL import Image
 from rest_framework import status
-from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from posts.models import PostImage
 from posts.serializers import (
