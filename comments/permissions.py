@@ -4,9 +4,9 @@ from typing import Any
 from rest_framework import authentication
 from rest_framework.exceptions import AuthenticationFailed, NotAuthenticated
 from rest_framework.permissions import BasePermission
-from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.request import Request
 from rest_framework.views import APIView
+from rest_framework_simplejwt.authentication import JWTAuthentication
 
 
 class IsAuthenticatedWithUnauthorized(BasePermission):
