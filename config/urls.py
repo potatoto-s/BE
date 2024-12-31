@@ -24,18 +24,11 @@ urlpatterns = [
     # API
     path("api/", include("users.urls")),
     # API URLs
-    path(
-        "api/",
-        include(
-            [
-                path("", include("posts.urls")),  # 게시글 관련 URLS
-                path("", include("comments.urls")),  # 댓글 관련 URLS
-            ]
-        ),
-    ),
+    path("api/posts/", include("posts.urls")),  # 게시글 관련 URLS
+    path("api/comment/", include("comments.urls")),  # 댓글 관련 URLS
     # API
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
     path("api/docs/swagger/", SpectacularSwaggerView.as_view(url_name="schema"), name="swagger-ui"),
     path("api/docs/redoc/", SpectacularRedocView.as_view(url_name="schema"), name="redoc"),
-    path('api/users/', include('users.urls')),
+    path("api/users/", include("users.urls")),
 ]
