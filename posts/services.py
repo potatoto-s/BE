@@ -163,9 +163,16 @@ class PostService:
         return category
 
     @staticmethod
-    def _handle_images(post: Post, images: List[str]) -> None:
-        image_instances = [PostImage(post=post, image_url=image) for image in images]
+    def _handle_images(post: Post, images: List[Any]) -> None:
+        image_instances = []
+        for image in images:
+            image_instance = PostImage(
+                post=post,
+                image_url=image  # ImageField는 자동으로 파일을 저장하고 경로를 저장
+            )
+            image_instances.append(image_instance)
         PostImage.objects.bulk_create(image_instances)
+
 
     @staticmethod
     @transaction.atomic
