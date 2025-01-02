@@ -6,22 +6,22 @@ app_name = "comments"
 
 urlpatterns = [
     path(
-        "posts/<int:post_id>/comments/",
+        "<int:post_id>/comments/",
         CommentListView.as_view(),
         name="comment-list",
     ),
     path(
-        "posts/<int:post_id>/comments/create/",
+        "<int:post_id>/comments/create/",
         CommentCreateView.as_view(),
         name="comment-create",
     ),
     path(
-        "comments/<int:comment_id>/update/",
+        "<int:comment_id>/update/",
         CommentUpdateView.as_view(),
         name="comment-update",
     ),
     path(
-        "comments/<int:comment_id>/delete/",
+        "<int:comment_id>/delete/",
         CommentDeleteView.as_view(),
         name="comment-delete",
     ),
