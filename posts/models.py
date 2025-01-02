@@ -98,13 +98,10 @@ class PostImage(models.Model):
     # 게시글 삭제 시 이미지 삭제
 
     post = models.ForeignKey(
-        Post, 
-        on_delete=models.CASCADE, 
-        related_name="images", 
-        help_text="연결된 게시글"
+        Post, on_delete=models.CASCADE, related_name="images", help_text="연결된 게시글"
     )
     image_url = models.ImageField(
-        upload_to='posts/%Y/%m/%d/',
+        upload_to="posts/%Y/%m/%d/",
         null=False,
         blank=False,
         help_text="이미지 파일",
@@ -113,10 +110,7 @@ class PostImage(models.Model):
 
     class Meta:
         db_table = "post_images"
-        indexes = [
-            models.Index(fields=["post"], name="idx_postimage_post")
-        ]
-
+        indexes = [models.Index(fields=["post"], name="idx_postimage_post")]
 
 
 class PostLike(models.Model):
