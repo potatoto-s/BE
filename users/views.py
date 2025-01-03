@@ -1,11 +1,9 @@
 from django.contrib.auth import get_user_model
 from drf_spectacular.utils import OpenApiResponse, extend_schema, inline_serializer
 from rest_framework import serializers, status
-from rest_framework.mixins import RetrieveModelMixin, UpdateModelMixin
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.viewsets import GenericViewSet
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from .permissions import IsOwner
@@ -21,21 +19,9 @@ from .serializers import (
 User = get_user_model()
 
 
-class UserViewSet(GenericViewSet, RetrieveModelMixin, UpdateModelMixin):
-    queryset = User.objects.all()
+class ProfileView(APIView):
+    permission_classes = [IsAuthenticated]
     serializer_class = UserProfileSerializer
-    permission_classes = [IsAuthenticated, IsOwner]
-
-    def get_object(self):
-        return self.request.user
-
-    @extend_schema(exclude=True)
-    def update(self, request, *args, **kwargs):
-        """전체 수정은 비활성화"""
-        return Response(
-            {"detail": "PUT method not allowed, use PATCH instead"},
-            status=status.HTTP_405_METHOD_NOT_ALLOWED,
-        )
 
     @extend_schema(
         summary="사용자 프로필 조회",
@@ -43,11 +29,11 @@ class UserViewSet(GenericViewSet, RetrieveModelMixin, UpdateModelMixin):
         responses={
             200: UserProfileSerializer,
             401: OpenApiResponse(description="인증되지 않은 사용자"),
-            403: OpenApiResponse(description="권한 없음"),
         },
     )
-    def retrieve(self, request, *args, **kwargs):
-        return super().retrieve(request, *args, **kwargs)
+    def get(self, request):
+        serializer = self.serializer_class(request.user)
+        return Response(serializer.data)
 
     @extend_schema(
         summary="사용자 프로필 수정",
@@ -57,11 +43,13 @@ class UserViewSet(GenericViewSet, RetrieveModelMixin, UpdateModelMixin):
             200: UserProfileSerializer,
             400: OpenApiResponse(description="잘못된 요청"),
             401: OpenApiResponse(description="인증되지 않은 사용자"),
-            403: OpenApiResponse(description="권한 없음"),
         },
     )
-    def partial_update(self, request, *args, **kwargs):
-        return super().partial_update(request, *args, **kwargs)
+    def patch(self, request):
+        serializer = self.serializer_class(request.user, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
 
     @extend_schema(
         summary="회원 탈퇴",
@@ -69,12 +57,10 @@ class UserViewSet(GenericViewSet, RetrieveModelMixin, UpdateModelMixin):
         responses={
             204: OpenApiResponse(description="탈퇴 성공"),
             401: OpenApiResponse(description="인증되지 않은 사용자"),
-            403: OpenApiResponse(description="권한 없음"),
         },
     )
-    def destroy(self, request, *args, **kwargs):
-        user = self.get_object()
-        user.delete()
+    def delete(self, request):
+        request.user.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
