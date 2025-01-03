@@ -17,7 +17,7 @@ class UserManager(BaseUserManager):
     def create_superuser(self, email, password=None, **extra_fields):
         extra_fields.setdefault("is_staff", True)
         extra_fields.setdefault("is_superuser", True)
-        extra_fields.setdefault("role", "COMPANY")  # 기본값 설정
+        extra_fields.setdefault("role", "COMPANY")
         return self.create_user(email, password, **extra_fields)
 
 
@@ -26,12 +26,10 @@ class User(AbstractUser):
         COMPANY = "COMPANY", "기업"
         WORKSHOP = "WORKSHOP", "공방"
 
-    # AbstractUser의 기본 필드 중 사용하지 않을 필드 무효화
     username = None
     first_name = None
     last_name = None
 
-    # 기존 필드 재정의 및 새로운 필드 추가
     email = models.EmailField(
         "이메일",
         max_length=255,
@@ -50,13 +48,14 @@ class User(AbstractUser):
         },
     )
     phone_regex = RegexValidator(
-        regex=r"^\d{10,11}$", message="전화번호는 10~11자리의 숫자로만 입력해주세요."
+        regex=r"^\d{2,3}-\d{3,4}-\d{4}$",
+        message="전화번호는 '010-1234-5678' 형식으로 입력해주세요.",
     )
     phone = models.CharField(
         "전화번호",
         max_length=20,
         validators=[phone_regex],
-        help_text="'-' 없이 숫자만 입력해주세요.",
+        help_text="'-'를 포함하여 입력해주세요. (예: 010-1234-5678)",
     )
     role = models.CharField(
         "역할", max_length=20, choices=Role.choices, help_text="기업 또는 공방을 선택해주세요."
