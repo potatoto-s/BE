@@ -15,6 +15,226 @@
 - 인증이 필요한 API 호출 시 헤더에 다음과 같이 토큰을 포함해야 합니다:
 - Authorization: Bearer {access_token}
 
+## User 관련 API (Swagger 참조 어려울 시)
+
+### 회원가입
+**URL**: `/signup/`
+**Method**: `POST`
+**Request**:
+```json
+{
+  "email": "string",
+  "password": "string",
+  "password2": "string",
+  "name": "string",
+  "nickname": "string",
+  "phone": "string (형식: 010-1234-5678)",
+  "role": "COMPANY | WORKSHOP",
+  "company_name": "string (role이 COMPANY인 경우 필수)",
+  "workshop_name": "string (role이 WORKSHOP인 경우 필수)"
+}
+```
+
+**Response (201)**:
+```json
+{
+  "id": "number",
+  "email": "string",
+  "name": "string",
+  "nickname": "string",
+  "phone": "string",
+  "role": "string",
+  "company_name": "string",
+  "workshop_name": "string"
+}
+```
+
+**Error Responses**:
+- 400: 잘못된 요청 (유효성 검증 실패)
+
+### 로그인
+**URL**: `/login/`
+**Method**: `POST`
+**Request**:
+```json
+{
+  "email": "string",
+  "password": "string"
+}
+```
+
+**Response (200)**:
+```json
+{
+  "access": "string",
+  "refresh": "string",
+  "user": {
+    "id": "number",
+    "email": "string",
+    "name": "string",
+    "nickname": "string",
+    "phone": "string",
+    "role": "string",
+    "company_name": "string",
+    "workshop_name": "string"
+  }
+}
+```
+
+**Error Responses**:
+- 401: 인증 실패
+
+### 토큰 갱신
+**URL**: `/token/refresh/`
+**Method**: `POST`
+**Request**:
+```json
+{
+  "refresh": "string"
+}
+```
+
+**Response (200)**:
+```json
+{
+  "access": "string"
+}
+```
+
+**Error Responses**:
+- 401: 유효하지 않은 토큰
+
+## 사용자 관련 API
+
+### 프로필 조회
+**URL**: `/profile/`
+**Method**: `GET`
+**Auth Required**: Yes
+**Response (200)**:
+```json
+{
+  "id": "number",
+  "email": "string",
+  "name": "string",
+  "nickname": "string",
+  "phone": "string",
+  "role": "string",
+  "company_name": "string",
+  "workshop_name": "string"
+}
+```
+
+**Error Responses**:
+- 401: 인증되지 않은 사용자
+- 403: 권한 없음
+
+### 프로필 수정
+**URL**: `/profile/`
+**Method**: `PATCH`
+**Auth Required**: Yes
+**Request**:
+```json
+{
+  "name": "string (optional)",
+  "nickname": "string (optional)",
+  "phone": "string (optional, 형식: 010-1234-5678)",
+  "company_name": "string (optional, COMPANY 회원만 가능)",
+  "workshop_name": "string (optional, WORKSHOP 회원만 가능)"
+}
+```
+
+**Response (200)**:
+```json
+{
+  "id": "number",
+  "email": "string",
+  "name": "string",
+  "nickname": "string",
+  "phone": "string",
+  "role": "string",
+  "company_name": "string",
+  "workshop_name": "string"
+}
+```
+
+**Error Responses**:
+- 400: 잘못된 요청
+- 401: 인증되지 않은 사용자
+- 403: 권한 없음
+
+### 회원 탈퇴
+**URL**: `/profile/`
+**Method**: `DELETE`
+**Auth Required**: Yes
+**Response (204)**: No Content
+**Error Responses**:
+- 401: 인증되지 않은 사용자
+- 403: 권한 없음
+
+### 이메일 중복 확인
+**URL**: `/check/email/`
+**Method**: `POST`
+**Request**:
+```json
+{
+  "email": "string"
+}
+```
+
+**Response (200)**:
+```json
+{
+  "message": "사용 가능한 이메일입니다."
+}
+```
+
+**Error Responses**:
+- 400: 중복된 이메일
+
+### 닉네임 중복 확인
+**URL**: `/check/nickname/`
+**Method**: `POST`
+**Request**:
+```json
+{
+  "nickname": "string"
+}
+```
+
+**Response (200)**:
+```json
+{
+  "message": "사용 가능한 닉네임입니다."
+}
+```
+
+**Error Responses**:
+- 400: 중복된 닉네임
+
+### 비밀번호 변경
+**URL**: `/password/change/`
+**Method**: `POST`
+**Auth Required**: Yes
+**Request**:
+```json
+{
+  "current_password": "string",
+  "new_password": "string",
+  "new_password2": "string"
+}
+```
+
+**Response (200)**:
+```json
+{
+  "message": "비밀번호가 성공적으로 변경되었습니다."
+}
+```
+
+**Error Responses**:
+- 400: 잘못된 요청 (현재 비밀번호 불일치 또는 새 비밀번호 검증 실패)
+- 401: 인증되지 않은 사용자
+
 ## 게시글 생성 (POST /api/posts/create/)
 
 **Request Body**
