@@ -17,6 +17,10 @@ DATABASES = {
         "PASSWORD": env("DB_PASSWORD_LOCAL"),
         "HOST": env("DB_HOST_LOCAL"),
         "PORT": env("DB_PORT_LOCAL"),
+        "OPTIONS": {
+            "options": "-c search_path=handlocal",
+        },
     }
 }
 DATABASES["default"]["ATOMIC_REQUESTS"] = True
+
