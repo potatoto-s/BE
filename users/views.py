@@ -46,7 +46,12 @@ class ProfileView(APIView):
         },
     )
     def patch(self, request):
-        serializer = self.serializer_class(request.user, data=request.data, partial=True)
+        serializer = self.serializer_class(
+            request.user,
+            data=request.data,
+            partial=True,
+            context={"request": request},  # context 추가
+        )
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data)
