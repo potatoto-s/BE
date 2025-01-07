@@ -96,6 +96,12 @@ class UserProfileSerializer(serializers.ModelSerializer):
                     {"company_name": "공방 회원은 기업명을 설정할 수 없습니다."}
                 )
         return attrs
+    
+    def update(self, instance, validated_data):
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+        return instance
 
 
 class CheckEmailSerializer(serializers.Serializer):
