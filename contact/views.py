@@ -1,20 +1,22 @@
-from django.shortcuts import render, redirect
-from .services import save_and_send_inquiry
-from .forms import ContactForm
+from rest_framework import generics, status
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
-def contact_view(request):
-    if request.method == 'POST':
-        form = ContactForm(request.POST)
-        if form.is_valid():
-            save_and_send_inquiry(
-                name=form.cleaned_data['name'],
-                email=form.cleaned_data['email'],
-                phone=form.cleaned_data['phone'],
-                message=form.cleaned_data['message'],
-                company_name=form.cleaned_data['company_name'],
-                prefered_reply=form.cleaned_data['prefered_reply']
+from .serializers import ContactInquirySerializer
+from .services import save_and_send_inquiry
+
+
+class ContactInquiryView(APIView):
+    def post(self, request, *args, **kwargs):
+        serializer = ContactInquirySerializer(data=request.data)
+        if serializer.is_valid():
+            inquiry = save_and_send_inquiry(**serializer.validated_data)
+            return Response(
+                ContactInquirySerializer(inquiry).data, status=status.HTTP_201_CREATED
             )
-            return redirect('success_page')
-    else:
-        form = ContactForm()
-    return render(request, 'contact.html', {'form': form})
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ContactSuccessView(APIView):
+    def get(self, request, *args, **kwargs):
+        return Response({"message": "문의가 성공적으로 접수되었습니다."})
