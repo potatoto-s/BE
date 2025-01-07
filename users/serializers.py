@@ -97,6 +97,12 @@ class UserProfileSerializer(serializers.ModelSerializer):
                 )
         return attrs
 
+    def update(self, instance, validated_data):
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+        return instance
+
 
 class CheckEmailSerializer(serializers.Serializer):
     email = serializers.EmailField()
