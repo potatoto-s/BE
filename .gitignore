@@ -276,3 +276,6 @@ pyrightconfig.json
 
 # __pycache__ 폴더 무시 (컴파일된 Python 파일)
 **/__pycache__/
+
+db.sqlite3.production
+db.sqlite3.local
