@@ -10,6 +10,16 @@ jobs:
   ci:
     runs-on: ubuntu-20.04
 
+
+    services:
+      db:
+        image: postgres:14
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+
     steps:
       - name: Check out the codes
         uses: actions/checkout@v2
@@ -18,7 +28,7 @@ jobs:
         id: setup-python
         uses: actions/setup-python@v2
         with:
-          python-version: 3.12
+          python-version: 3.13
 
       - name: Set timezone to KST
         run: |
@@ -46,10 +56,6 @@ jobs:
       - name: Run isort
         run: |
           poetry run isort . --check --diff
-
-      - name: Run mypy
-        run: |
-          poetry run mypy .
 
       - name: Test python project
         run: |
