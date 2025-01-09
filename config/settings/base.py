@@ -72,6 +72,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
     "http://hanzwit.s3-website-us-east-1.amazonaws.com/",
+    "https://d2n47kcw369sq8.cloudfront.net/",
 ]
 
 CORS_ALLOW_CREDENTIALS = True
@@ -82,6 +83,7 @@ CSRF_TRUSTED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
     "http://hanzwit.s3-website-us-east-1.amazonaws.com/",
+    "https://d2n47kcw369sq8.cloudfront.net/",
 ]
 
 CORS_ALLOW_METHODS = [
