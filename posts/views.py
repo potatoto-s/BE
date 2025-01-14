@@ -179,21 +179,22 @@ class PostUpdateView(APIView):
                 raise ValidationError(f"존재하지 않는 이미지 ID: {invalid_ids}")
 
     @extend_schema(
-        request={
-            "multipart/form-data": {
-                "type": "object",
-                "properties": {
-                    "title": {"type": "string"},
-                    "content": {"type": "string"},
-                    "category": {"type": "string"},
-                    "add_images": {
-                        "type": "array",
-                        "items": {"type": "string", "format": "binary"},
-                    },
-                    "remove_image_ids": {"type": "array", "items": {"type": "integer"}},
-                },
-            }
-        },
+        request=PostUpdateSerializer,
+        responses={200: PostDetailSerializer},
+        parameters=[
+            OpenApiParameter(
+                name="add_images",
+                type={"type": "array", "items": {"type": "string", "format": "binary"}},
+                location="form",
+                description="List of images to add",
+            ),
+            OpenApiParameter(
+                name="remove_image_ids",
+                type={"type": "array", "items": {"type": "integer"}},
+                location="form",  # 'query'에서 'form'으로 수정
+                description="List of image IDs to remove",
+            ),
+        ],
         responses={200: PostDetailSerializer},
     )
     def patch(self, request: Request, post_id: int) -> Response:
