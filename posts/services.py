@@ -132,20 +132,17 @@ class PostService:
         if post.user_id != user_id:
             raise PermissionDenied("자신의 게시글만 수정할 수 있습니다.")
 
-        # remove_image_ids가 문자열인 경우 처리
+        # remove_image_ids 처리
         if remove_image_ids:
-            try:
-                # 문자열을 정수 리스트로 변환
-                remove_ids = [int(id_.strip()) for id_ in remove_image_ids.split(",")]
-                PostImage.objects.filter(
-                    post_id=post_id,
-                    id__in=remove_ids,
-                ).delete()
-            except ValueError:
-                raise ValidationError("remove_image_ids must be valid integer IDs")
+            # 콤마로 구분된 ID들을 리스트로 변환
+            ids_to_remove = remove_image_ids.split(",")
+            PostImage.objects.filter(
+                post_id=post_id,
+                id__in=ids_to_remove,  # __in 쿼리 사용
+            ).delete()
 
         for key, value in data.items():
-            if key != "remove_image_ids":  # remove_image_ids는 별도 처리
+            if key != "remove_image_ids":
                 setattr(post, key, value)
         post.save()
 
