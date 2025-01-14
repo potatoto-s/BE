@@ -99,7 +99,7 @@ class PostDetailView(APIView):
 
         serializer = PostDetailSerializer(post, context=context)
         response = Response(serializer.data)
-        response["Cache-Control"] = "max-age=60"
+        response["Cache-Control"] = "no-cache"
         return response
 
 
