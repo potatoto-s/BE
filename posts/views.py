@@ -1,7 +1,8 @@
 from typing import Any, List
 
 from django.db import transaction
-from drf_spectacular.utils import OpenApiParameter, extend_schema
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import OpenApiParameter, OpenApiTypes, extend_schema
 from PIL import Image
 from rest_framework import status
 from rest_framework.exceptions import ValidationError
@@ -177,7 +178,24 @@ class PostUpdateView(APIView):
             if invalid_ids:
                 raise ValidationError(f"존재하지 않는 이미지 ID: {invalid_ids}")
 
-    @extend_schema(request=PostUpdateSerializer, responses={200: PostDetailSerializer})
+    @extend_schema(
+        request={
+            "multipart/form-data": {
+                "type": "object",
+                "properties": {
+                    "title": {"type": "string"},
+                    "content": {"type": "string"},
+                    "category": {"type": "string"},
+                    "add_images": {
+                        "type": "array",
+                        "items": {"type": "string", "format": "binary"},
+                    },
+                    "remove_image_ids": {"type": "array", "items": {"type": "integer"}},
+                },
+            }
+        },
+        responses={200: PostDetailSerializer},
+    )
     def patch(self, request: Request, post_id: int) -> Response:
         serializer = PostUpdateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
