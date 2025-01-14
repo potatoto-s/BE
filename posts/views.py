@@ -195,7 +195,6 @@ class PostUpdateView(APIView):
                 description="List of image IDs to remove",
             ),
         ],
-        responses={200: PostDetailSerializer},
     )
     def patch(self, request: Request, post_id: int) -> Response:
         serializer = PostUpdateSerializer(data=request.data)
