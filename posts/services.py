@@ -193,3 +193,7 @@ class PostService:
         post.save()
         post.refresh_from_db()
         return True
+
+    @staticmethod
+    def is_liked(post_id: int, user_id: int) -> bool:
+        return PostLike.objects.filter(post_id=post_id, user_id=user_id).exists()
