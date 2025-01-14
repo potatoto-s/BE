@@ -180,24 +180,23 @@ class PostUpdateView(APIView):
 
     @extend_schema(request=PostUpdateSerializer, responses={200: PostDetailSerializer})
     def patch(self, request: Request, post_id: int) -> Response:
-        # 먼저 remove_image_ids 처리
+        # 기존 request.data를 새로운 딕셔너리로 복사
+        data = request.data.copy()
+
+        # remove_image_ids 처리
         remove_ids = request.data.get("remove_image_ids", "")
-        remove_image_ids = []
         if isinstance(remove_ids, str) and remove_ids:
             try:
                 remove_image_ids = [int(id_.strip()) for id_ in remove_ids.split(",")]
-                # 여기가 중요: request.data를 수정
-                request.data._mutable = True
-                request.data["remove_image_ids"] = remove_image_ids
-                request.data._mutable = False
+                data["remove_image_ids"] = remove_image_ids
             except ValueError:
                 raise ValidationError("remove_image_ids must be valid integer IDs")
 
-        serializer = PostUpdateSerializer(data=request.data)
+        serializer = PostUpdateSerializer(data=data)
         serializer.is_valid(raise_exception=True)
 
         add_images = request.FILES.getlist("add_images")
-        self.validate_image_operations(post_id, add_images, remove_image_ids)
+        self.validate_image_operations(post_id, add_images, data.get("remove_image_ids", []))
         validated_images = PostCreateView.validate_images(add_images)
 
         post = PostService.update_post(
@@ -205,7 +204,7 @@ class PostUpdateView(APIView):
             user_id=request.user.id,
             data=serializer.validated_data,
             add_image=validated_images,
-            remove_image_ids=remove_image_ids,
+            remove_image_ids=data.get("remove_image_ids", []),
         )
 
         return Response(PostDetailSerializer(post, context={"request": request}).data)
