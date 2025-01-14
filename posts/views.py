@@ -184,14 +184,14 @@ class PostUpdateView(APIView):
         serializer.is_valid(raise_exception=True)
 
         add_images = request.FILES.getlist("add_images")
-        remove_image_ids = request.data.get("remove_image_ids", "")  # 여기를 수정
-        # 문자열을 정수 리스트로 변환
-        if remove_image_ids:
+        remove_ids = request.data.get("remove_image_ids", "")
+
+        # remove_image_ids 처리
+        remove_image_ids = []
+        if isinstance(remove_ids, str):
             try:
-                if isinstance(remove_image_ids, str):
-                    remove_image_ids = [
-                        int(id_) for id_ in remove_image_ids.split(",") if id_.strip()
-                    ]
+                # 쉼표로 구분된 문자열을 처리
+                remove_image_ids = [int(id_.strip()) for id_ in remove_ids.split(",")]
             except ValueError:
                 raise ValidationError("remove_image_ids must be valid integer IDs")
 
