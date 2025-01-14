@@ -71,10 +71,10 @@ class Post(models.Model):
             # 삭제되지 않은 게시글 조회 최적화
             models.Index(fields=["is_deleted"], name="idx_post_is_deleted"),
         ]
-        constraints = [
-            # unique_together 대신 UniqueConstraint 사용
-            models.UniqueConstraint(fields=["user", "title"], name="unique_post_user_title")
-        ]
+        # constraints = [
+        #     # unique_together 대신 UniqueConstraint 사용
+        #     models.UniqueConstraint(fields=["user", "title"], name="unique_post_user_title")
+        # ]
 
     def __str__(self) -> str:
         return self.title
