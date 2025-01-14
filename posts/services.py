@@ -125,25 +125,32 @@ class PostService:
         user_id: int,
         data: Dict[str, Any],
         add_image: Optional[List[Any]] = None,
-        remove_image_ids: Optional[List[int]] = None,
+        remove_image_ids: Optional[str] = None,
     ) -> Post:
         post = get_object_or_404(Post, id=post_id, is_deleted=False)
 
         if post.user_id != user_id:
             raise PermissionDenied("자신의 게시글만 수정할 수 있습니다.")
 
+        # remove_image_ids가 문자열인 경우 처리
+        if remove_image_ids:
+            try:
+                # 문자열을 정수 리스트로 변환
+                remove_ids = [int(id_.strip()) for id_ in remove_image_ids.split(",")]
+                PostImage.objects.filter(
+                    post_id=post_id,
+                    id__in=remove_ids,
+                ).delete()
+            except ValueError:
+                raise ValidationError("remove_image_ids must be valid integer IDs")
+
         for key, value in data.items():
-            setattr(post, key, value)
+            if key != "remove_image_ids":  # remove_image_ids는 별도 처리
+                setattr(post, key, value)
         post.save()
 
         if add_image:
             PostService._handle_images(post, add_image)
-
-        if remove_image_ids:
-            PostImage.objects.filter(
-                post_id=post_id,
-                id__in=remove_image_ids,
-            ).delete()
 
         return post
 
