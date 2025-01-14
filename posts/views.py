@@ -178,30 +178,20 @@ class PostUpdateView(APIView):
             if invalid_ids:
                 raise ValidationError(f"존재하지 않는 이미지 ID: {invalid_ids}")
 
-    @extend_schema(
-        request=PostUpdateSerializer,
-        responses={200: PostDetailSerializer},
-        parameters=[
-            OpenApiParameter(
-                name="add_images",
-                type={"type": "array", "items": {"type": "string", "format": "binary"}},
-                location="form",
-                description="List of images to add",
-            ),
-            OpenApiParameter(
-                name="remove_image_ids",
-                type={"type": "array", "items": {"type": "integer"}},
-                location="form",  # 'query'에서 'form'으로 수정
-                description="List of image IDs to remove",
-            ),
-        ],
-    )
+    @extend_schema(request=PostUpdateSerializer, responses={200: PostDetailSerializer})
     def patch(self, request: Request, post_id: int) -> Response:
         serializer = PostUpdateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
         add_images = request.FILES.getlist("add_images")
-        remove_image_ids = request.data.get("remove_image_ids", [])
+        remove_image_ids = request.data.get("remove_image_ids", "")  # 여기를 수정
+        # 문자열을 정수 리스트로 변환
+        if remove_image_ids:
+            try:
+                if isinstance(remove_image_ids, str):
+                    remove_image_ids = [int(id_) for id_ in remove_image_ids.split(',') if id_.strip()]
+            except ValueError:
+                raise ValidationError("remove_image_ids must be valid integer IDs")
 
         self.validate_image_operations(post_id, add_images, remove_image_ids)
         validated_images = PostCreateView.validate_images(add_images)
