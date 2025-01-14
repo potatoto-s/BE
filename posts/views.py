@@ -189,7 +189,9 @@ class PostUpdateView(APIView):
         if remove_image_ids:
             try:
                 if isinstance(remove_image_ids, str):
-                    remove_image_ids = [int(id_) for id_ in remove_image_ids.split(',') if id_.strip()]
+                    remove_image_ids = [
+                        int(id_) for id_ in remove_image_ids.split(",") if id_.strip()
+                    ]
             except ValueError:
                 raise ValidationError("remove_image_ids must be valid integer IDs")
 
