@@ -206,3 +206,8 @@ class PostLikeResponseSerializer(serializers.Serializer[Any]):
 # User 모델 스키마를 공유하고 필드명을 맞추기
 # User 모델의 role 상수값 (예: "WORKSHOP")을 공유하거나 enum으로 정의
 # 필요한 경우 User 타입에 대한 타입 힌트도 공유
+
+
+# 유저가 좋아요한 게시글 좋아요 boolean 조회
+class PostLikeResponseSerializer(serializers.Serializer[Any]):
+    is_liked = serializers.BooleanField()

@@ -266,3 +266,24 @@ class UserPostListView(APIView):
 
         serializer = PostListSerializer(posts, many=True, context={"request": request})
         return Response({"data": serializer.data, "has_next": has_next, "next_cursor": next_cursor})
+
+
+# 유저가 좋아요한 게시글 좋아요 boolean 조회
+class UserLikedPostListView(APIView):
+    serializer_class = PostLikeResponseSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    @extend_schema(responses={200: PostLikeResponseSerializer})
+    def get(self, request: Request, post_id: int) -> Response:
+        if not request.user.is_authenticated:
+            return Response(
+                {"detail": "로그인이 필요한 서비스입니다."},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
+
+        is_liked = PostService.is_liked(
+            post_id=post_id,
+            user_id=request.user.id,
+        )
+
+        return Response({"is_liked": is_liked})
