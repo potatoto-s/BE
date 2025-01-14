@@ -161,8 +161,10 @@ class PostUpdateSerializer(BaseSerializer):
     add_images = serializers.ListField(
         child=serializers.ImageField(), required=False, write_only=True
     )
-    remove_image_ids = serializers.ListField(
-        child=serializers.IntegerField(), required=False, write_only=True
+    remove_image_ids = serializers.CharField(
+        required=False,
+        write_only=True,
+        help_text="삭제할 이미지 ID들을 콤마(,)로 구분하여 입력 (예: '1,2,3')",
     )
 
     def validate(self, attrs: Dict[str, Any]) -> Dict[str, Any]:
