@@ -75,7 +75,7 @@ BE
 │   ├── urls.py
 │   └── views.py
 │
-├── contexts    # 문의하기
+├── contacts    # 문의하기
 │   ├── admin.py
 │   ├── models.py
 │   ├── serializers.py
@@ -84,4 +84,85 @@ BE
 │
 └── manage.py
 ```
-![alt text](image.png)
+## System Architecture
+
+```mermaid
+graph TB
+    subgraph Client Layer
+        User((User))
+        Post((Post))
+        Comment((Comment))
+        Contact((Contact))
+    end
+
+    subgraph Service Layer
+        Django[Django Services]
+    end
+
+    subgraph Production Server
+        direction TB
+        subgraph Web Server
+            Nginx[Nginx Web Server]
+        end
+        
+        subgraph Application Server
+            Gunicorn[Gunicorn WSGI]
+        end
+        
+        subgraph Database Server
+            PostgreSQL[(PostgreSQL DB)]
+        end
+    end
+
+    subgraph Development Server
+        direction TB
+        subgraph Dev Web Server
+            DevNginx[Nginx Web Server]
+        end
+        
+        subgraph Dev Application Server
+            DevGunicorn[Gunicorn WSGI]
+        end
+        
+        subgraph Dev Database Server
+            DevDB[(PostgreSQL DB)]
+        end
+    end
+
+    User --> Django
+    Post --> Django
+    Comment --> Django
+    Contact --> Django
+
+    %% Production Flow
+    Django --> Nginx
+    Nginx --> Gunicorn
+    Gunicorn --> PostgreSQL
+
+    %% Development Flow
+    Django --> DevNginx
+    DevNginx --> DevGunicorn
+    DevGunicorn --> DevDB
+
+    classDef server stroke:#333,stroke-width:4px
+    classDef database stroke:#333,stroke-width:4px
+    class Nginx,Gunicorn,DevNginx,DevGunicorn server
+    class PostgreSQL,DevDB database
+```
+
+## Runserver
+
+### Development
+```bash
+python manage.py runserver --settings=config.settings.local
+```
+
+### Production
+```bash
+python manage.py runserver --settings=config.settings.production
+```
+
+## Test
+```bash
+./test.sh
+```
