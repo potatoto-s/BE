@@ -60,6 +60,11 @@ class InquirySerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError(
                     {"email": "이메일 연락 방식을 선택하셨으므로 이메일은 필수입니다."}
                 )
+            # 이메일 형식 추가 검증
+            if not email or not "@" in email:
+                raise serializers.ValidationError(
+                    {"email": "이메일은 'example@example.com' 형식으로 입력해주세요."}
+                )
         elif preferred_contact == "PHONE":
             if not phone:
                 raise serializers.ValidationError(
