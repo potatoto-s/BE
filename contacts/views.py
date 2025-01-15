@@ -46,13 +46,40 @@ class InquiryDetailView(APIView):
         except Inquiry.DoesNotExist:
             return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
 
+    @extend_schema(
+        request=InquirySerializer,
+        responses={200: InquirySerializer},
+        description="문의 내용을 수정합니다.",
+        examples=[
+            OpenApiExample(
+                "Example Request",
+                value={
+                    "name": "홍길동",
+                    "email": "test@test.com",
+                    "content": "수정된 문의 내용입니다.",
+                    "inquiry_type": "COMPANY",
+                    "organization_name": "테스트 회사",
+                    "preferred_contact": "EMAIL",
+                },
+            )
+        ],
+    )
     def patch(self, request, inquiry_id):
         try:
             inquiry = Inquiry.objects.get(id=inquiry_id)
             serializer = InquirySerializer(inquiry, data=request.data, partial=True)
             if serializer.is_valid():
-                inquiry = serializer.save()
-                return Response(InquirySerializer(inquiry).data)
+                # update_inquiry 메서드를 통해 수정 및 이메일 발송
+                updated_inquiry = InquiryService.update_inquiry(inquiry, serializer.validated_data)
+                return Response(InquirySerializer(updated_inquiry).data)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         except Inquiry.DoesNotExist:
-            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {"detail": "문의를 찾을 수 없습니다."}, status=status.HTTP_404_NOT_FOUND
+            )
+        except Exception as e:
+            logger.error(f"문의 수정 중 오류 발생: {str(e)}")
+            return Response(
+                {"detail": "문의 수정 중 오류가 발생했습니다."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
