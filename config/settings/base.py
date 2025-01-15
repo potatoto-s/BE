@@ -18,8 +18,23 @@ import environ
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
-env = environ.Env(DEBUG=(bool, False))
-environ.Env.read_env(env_file=os.path.join(BASE_DIR, ".env"))
+# environ 초기화 시 override=True 설정
+env = environ.Env(DEBUG=(bool, False), EMAIL_HOST_USER=(str, None), EMAIL_HOST_PASSWORD=(str, None))
+
+# 환경변수 파일 경로
+env_path = os.path.join(BASE_DIR, ".env")
+print(f"Loading .env from: {env_path}")
+
+# .env 파일을 강제로 읽도록 설정
+environ.Env.read_env(env_file=env_path, overwrite=True)
+
+# 이메일 설정
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = env("EMAIL_HOST")
+EMAIL_PORT = env("EMAIL_PORT")
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = env("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD")
 
 # SECRET_KEY를 환경 변수에서 가져옵니다.
 SECRET_KEY = env("SECRET_KEY")
@@ -51,6 +66,7 @@ INSTALLED_APPS = [
     "users",
     "posts",
     "comments",
+    "contacts",
 ]
 
 AUTH_USER_MODEL = "users.User"

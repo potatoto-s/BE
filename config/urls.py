@@ -30,6 +30,7 @@ urlpatterns = [
     path("api/users/", include("users.urls")),
     path("api/posts/", include("posts.urls")),  # 게시글 관련 URLS
     path("api/comment/", include("comments.urls")),  # 댓글 관련 URLS
+    path("api/contacts/", include("contacts.urls")),  # 문의 관련 URLS
 ] + static(
     settings.MEDIA_URL, document_root=settings.MEDIA_ROOT
 )  # 미디어 파일 서빙 설정 추가
