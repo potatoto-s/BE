@@ -44,18 +44,19 @@ python = "^3.8"
 [tool.poetry.group.dev.dependencies]
 black = "^24.1.1"
 isort = "^5.13.2"
+mypy = "^1.8.0"
 pre-commit = "^3.6.0"
 
 [tool.black]
 line-length = 100
 target-version = ["py38", "py39", "py310"]
-include = ".pyi?$"
+include = "\.pyi?$"
 extend-exclude = '''
 /(
-    .eggs
-  | .git
-  | .mypy_cache
-  | .venv
+    \.eggs
+  | \.git
+  | \.mypy_cache
+  | \.venv
   | venv
   | env
   | _build
@@ -78,6 +79,20 @@ skip_glob = ["*/migrations/*"]
 sections = ["FUTURE", "STDLIB", "THIRDPARTY", "FIRSTPARTY", "LOCALFOLDER"]
 default_section = "THIRDPARTY"
 
+[tool.mypy]
+python_version = "3.8"
+disallow_untyped_defs = true
+ignore_missing_imports = true
+check_untyped_defs = true
+warn_return_any = true
+warn_unused_ignores = true
+show_error_codes = true
+exclude = [
+    'migrations/',
+    'tests/',
+    'env/',
+    'venv/',
+]
 
 ### .pre-commit-config.yaml
 repos:
@@ -105,7 +120,7 @@ repos:
 
 ```bash
 # 1. 개발 의존성 설치
-poetry add -D black isort pre-commit
+poetry add -D black isort mypy pre-commit
 
 # 2. pre-commit 설치
 poetry run pre-commit install
@@ -116,6 +131,7 @@ poetry run pre-commit run --all-files
 # 개별 도구 실행
 poetry run black .
 poetry run isort .
+poetry run mypy .
 
 ### pre-commit으로 모든 검사 실행
 poetry run pre-commit run --all-files
