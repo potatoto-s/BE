@@ -1,4 +1,4 @@
-from django.core.validators import RegexValidator
+from django.core.validators import EmailValidator, RegexValidator
 from rest_framework import serializers
 
 from .models import Inquiry
@@ -10,8 +10,17 @@ class InquirySerializer(serializers.ModelSerializer):
         message="전화번호는 '010-1234-5678' 형식으로 입력해주세요.",
     )
 
-    email = serializers.EmailField(required=False, allow_null=True)
-    phone = serializers.CharField(required=False, allow_null=True, validators=[phone_regex])
+    email = serializers.EmailField(
+        required=False,
+        allow_null=True,
+        error_messages={"invalid": "이메일은 'example@example.com' 형식으로 입력해주세요."},
+    )
+    phone = serializers.CharField(
+        required=False,
+        allow_null=True,
+        validators=[phone_regex],
+        error_messages={"invalid": "전화번호는 '010-1234-5678' 형식으로 입력해주세요."},
+    )
     organization_name = serializers.CharField(
         error_messages={
             "required": "문의 유형이 COMPANY인 경우 기업명을, WORKSHOP인 경우 공방명을 입력해주세요.",
