@@ -108,10 +108,10 @@ graph TB
         subgraph Application Server
             Gunicorn[Gunicorn WSGI]
         end
-        
-        subgraph Database Server
-            PostgreSQL[(PostgreSQL DB)]
-        end
+    end
+
+    subgraph Production Database Server
+        PostgreSQL[(PostgreSQL DB)]
     end
 
     subgraph Development Server
@@ -123,10 +123,10 @@ graph TB
         subgraph Dev Application Server
             DevGunicorn[Gunicorn WSGI]
         end
-        
-        subgraph Dev Database Server
-            DevDB[(PostgreSQL DB)]
-        end
+    end
+
+    subgraph Development Database Server
+        DevDB[(PostgreSQL DB)]
     end
 
     User --> Django
